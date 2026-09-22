@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/chat")({
           const result = streamText({
             model: gateway(GEMINI_MODEL),
             system,
-            messages: convertToModelMessages(body.messages as UIMessage[]),
+            messages: await convertToModelMessages(body.messages as UIMessage[]),
             abortSignal: request.signal,
           });
           return result.toUIMessageStreamResponse({
