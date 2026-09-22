@@ -10,6 +10,7 @@ A minimal note-and-writing app inspired by Minimal Notes: Notes (short-form), Pa
                        ├── Pages list  ──► /page/:id   (editor, top bar, Pages toolbar bubble)
                        ├── Search bar (filters both lists)
                        ├── + New Note / + New Page
+                       ├── small "Trash" link near search ──► /trash (restore / delete forever)
                        └── bottom-left bubble ──► /research   (general Gemini chat)
 
 Everywhere (Home, Note, Page, Research): top-left gear bubble ──► Settings panel (sheet)
@@ -20,7 +21,7 @@ Public:            /s/:token  ──► read-only rendered document (no login, r
 ## Data model (Lovable Cloud)
 
 - **profiles** — id (= auth user), display_name, created_at. Auto-created on signup.
-- **documents** — one table for both types: id, user_id, kind (`note` | `page`), title, content (JSON, editor document), plain_text (for search + previews), created_at, updated_at. Owner-only access.
+- **documents** — one table for both types: id, user_id, kind (`note` | `page`), title, content (JSON, editor document), plain_text (for search + previews), created_at, updated_at, `deleted_at` (null = active; soft delete for Trash). Owner-only access.
 - **share_links** — id, document_id, token (unique, random), created_at, revoked_at. Owner manages; a security-definer function `get_shared_document(token)` returns title/content/kind for public view-only reads (no direct public table access).
 - **user_settings** — user_id, font (`default` | curated key), accent_theme (default `dark-grey`), color_mode (`light` | `dark`, default `light`), updated_at.
 - **Auth** — email/password + Google sign-in via Lovable Cloud.
@@ -39,7 +40,13 @@ Public:            /s/:token  ──► read-only rendered document (no login, r
 - Top bar (glass, right-aligned, exact order): Notes/Pages segmented switcher, Home icon, Research icon, "✦ Ask Gemini" pill.
 - Notes toolbar bubble: H1/H2, bullet, numbered, checklist, bold, italic.
 - Pages toolbar bubble: font family, font size, H1–H6, bullet, numbered, bold, italic, underline, alignment. No checklists.
-- Notes/Pages switcher: from a note, switches to Pages list context (and vice versa) rather than converting the document.
+- Notes/Pages switcher (confirmed behavior): it navigates away. Tapping "Pages" while editing a Note autosaves the note, leaves it unchanged, and goes to Home scrolled/focused on the Pages list (and vice versa). It never converts the open document and never just toggles a view inside the editor.
+
+### Phase 2b — Delete / Trash
+- Each Home card gets a kebab ("...") menu with Delete (long-press also opens it on touch). No other card clutter.
+- Delete is a soft delete: sets `deleted_at`. Deleted documents are excluded from both Home lists and from search.
+- `/trash`: lightweight list of deleted items with Restore and Delete permanently. Reached from a small "Trash" link near the search bar and from Settings — not primary nav.
+- Auto-purge: items with `deleted_at` older than 30 days are permanently deleted (scheduled cleanup job), and the Trash view shows days remaining.
 
 ### Phase 3 — AI (Lovable AI, Gemini, server-side)
 - **Ask Gemini sidebar**: scoped to the open document; quick actions (Rewrite, Summarize, Continue writing) plus free questions; streaming; "Insert" / "Replace selection" for results.
@@ -53,7 +60,7 @@ Public:            /s/:token  ──► read-only rendered document (no login, r
 ## Technical notes
 
 - Stack: TanStack Start, Tailwind v4 tokens, shadcn primitives, TipTap editor, Lovable Cloud (auth + Postgres with RLS), Lovable AI gateway via server routes/functions (streaming chat routes for Ask Gemini and Research; a server function for autocomplete).
-- `.mnml` format: Minimal Notes' native format is not publicly documented; the export will be a JSON/Markdown-based file with a `.mnml` extension. If you have a sample `.mnml` file, share it and I will match it exactly.
+- `.mnml` export is an intentional placeholder: a JSON/Markdown-based file with a `.mnml` extension, isolated in one small module so it can be swapped later. No reverse-engineering now — when you send a real exported sample, we match it exactly.
 - `.docx` built client-side with the `docx` library; `.png` via `html-to-image` snapshot of the rendered document.
 - Google sign-in uses Lovable Cloud's managed Google provider (no keys needed).
 - Public view: no login required; only the security-definer lookup by token is exposed, so private documents stay private.
