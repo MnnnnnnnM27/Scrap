@@ -73,8 +73,8 @@ export async function exportDocx(doc: ScrapDocument) {
         text: child.text ?? "",
         bold: marks.has("bold"),
         italics: marks.has("italic"),
-        underline: marks.has("underline") ? {} : undefined,
         strike: marks.has("strike"),
+        ...(marks.has("underline") ? { underline: {} } : {}),
       });
     });
 
