@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type { DocKind, ScrapDocument } from "./scrap-types";
 
 const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] };
@@ -37,7 +38,7 @@ export async function createDocument(kind: DocKind): Promise<ScrapDocument> {
 
 export async function saveDocument(
   id: string,
-  patch: { title?: string; content?: unknown; plain_text?: string },
+  patch: { title?: string; content?: Json; plain_text?: string },
 ): Promise<void> {
   const { error } = await supabase.from("documents").update(patch).eq("id", id);
   if (error) throw error;
