@@ -14,13 +14,133 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          content: Json
+          created_at: string
+          deleted_at: string | null
+          id: string
+          kind: string
+          plain_text: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          kind: string
+          plain_text?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          kind?: string
+          plain_text?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      share_links: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          revoked_at: string | null
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          revoked_at?: string | null
+          token?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          revoked_at?: string | null
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "share_links_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          accent_theme: string
+          color_mode: string
+          font: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent_theme?: string
+          color_mode?: string
+          font?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent_theme?: string
+          color_mode?: string
+          font?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_document: {
+        Args: { _token: string }
+        Returns: {
+          content: Json
+          kind: string
+          title: string
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
