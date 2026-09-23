@@ -11,7 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResearchRouteImport } from './routes/research'
+import { Route as TrashRouteImport } from './routes/trash'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as NoteIdRouteImport } from './routes/note.$id'
+import { Route as PageIdRouteImport } from './routes/page.$id'
+import { Route as STokenRouteImport } from './routes/s.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +28,110 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResearchRoute = ResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrashRoute = TrashRouteImport.update({
+  id: '/trash',
+  path: '/trash',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoteIdRoute = NoteIdRouteImport.update({
+  id: '/note/$id',
+  path: '/note/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PageIdRoute = PageIdRouteImport.update({
+  id: '/page/$id',
+  path: '/page/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const STokenRoute = STokenRouteImport.update({
+  id: '/s/$token',
+  path: '/s/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/research': typeof ResearchRoute
+  '/trash': typeof TrashRoute
   '/api/chat': typeof ApiChatRoute
+  '/note/$id': typeof NoteIdRoute
+  '/page/$id': typeof PageIdRoute
+  '/s/$token': typeof STokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/research': typeof ResearchRoute
+  '/trash': typeof TrashRoute
   '/api/chat': typeof ApiChatRoute
+  '/note/$id': typeof NoteIdRoute
+  '/page/$id': typeof PageIdRoute
+  '/s/$token': typeof STokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/research': typeof ResearchRoute
+  '/trash': typeof TrashRoute
   '/api/chat': typeof ApiChatRoute
+  '/note/$id': typeof NoteIdRoute
+  '/page/$id': typeof PageIdRoute
+  '/s/$token': typeof STokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/api/chat'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/research'
+    | '/trash'
+    | '/api/chat'
+    | '/note/$id'
+    | '/page/$id'
+    | '/s/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/api/chat'
-  id: '__root__' | '/' | '/auth' | '/api/chat'
+  to:
+    | '/'
+    | '/auth'
+    | '/research'
+    | '/trash'
+    | '/api/chat'
+    | '/note/$id'
+    | '/page/$id'
+    | '/s/$token'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/research'
+    | '/trash'
+    | '/api/chat'
+    | '/note/$id'
+    | '/page/$id'
+    | '/s/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  ResearchRoute: typeof ResearchRoute
+  TrashRoute: typeof TrashRoute
   ApiChatRoute: typeof ApiChatRoute
+  NoteIdRoute: typeof NoteIdRoute
+  PageIdRoute: typeof PageIdRoute
+  STokenRoute: typeof STokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +150,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/research': {
+      id: '/research'
+      path: '/research'
+      fullPath: '/research'
+      preLoaderRoute: typeof ResearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trash': {
+      id: '/trash'
+      path: '/trash'
+      fullPath: '/trash'
+      preLoaderRoute: typeof TrashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/note/$id': {
+      id: '/note/$id'
+      path: '/note/$id'
+      fullPath: '/note/$id'
+      preLoaderRoute: typeof NoteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/page/$id': {
+      id: '/page/$id'
+      path: '/page/$id'
+      fullPath: '/page/$id'
+      preLoaderRoute: typeof PageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$token': {
+      id: '/s/$token'
+      path: '/s/$token'
+      fullPath: '/s/$token'
+      preLoaderRoute: typeof STokenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +198,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  ResearchRoute: ResearchRoute,
+  TrashRoute: TrashRoute,
   ApiChatRoute: ApiChatRoute,
+  NoteIdRoute: NoteIdRoute,
+  PageIdRoute: PageIdRoute,
+  STokenRoute: STokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
