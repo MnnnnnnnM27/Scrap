@@ -106,22 +106,37 @@ export type Database = {
       user_settings: {
         Row: {
           accent_theme: string
+          canvas_width: string
           color_mode: string
           font: string
+          ghost_autocomplete: boolean
+          show_ask_gemini: boolean
+          show_word_count: boolean
+          toolbar_side: string
           updated_at: string
           user_id: string
         }
         Insert: {
           accent_theme?: string
+          canvas_width?: string
           color_mode?: string
           font?: string
+          ghost_autocomplete?: boolean
+          show_ask_gemini?: boolean
+          show_word_count?: boolean
+          toolbar_side?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           accent_theme?: string
+          canvas_width?: string
           color_mode?: string
           font?: string
+          ghost_autocomplete?: boolean
+          show_ask_gemini?: boolean
+          show_word_count?: boolean
+          toolbar_side?: string
           updated_at?: string
           user_id?: string
         }
