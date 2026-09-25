@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { Download, Link2, X } from "lucide-react";
+import { Download, Link2, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChatThread } from "@/components/scrap/ChatThread";
@@ -15,10 +16,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { completeText } from "@/lib/ai.functions";
-import { getDocument, getOrCreateShareLink, revokeShareLinks, saveDocument } from "@/lib/documents";
+import {
+  getDocument,
+  getOrCreateShareLink,
+  revokeShareLinks,
+  saveDocument,
+  trashDocument,
+} from "@/lib/documents";
 import { buildExtensions } from "@/lib/editor-extensions";
 import { exportDocx, exportMarkdown, exportMnml, exportPng } from "@/lib/export";
-import type { DocKind, ScrapDocument } from "@/lib/scrap-types";
+import { useSettings } from "@/lib/settings";
+import { CANVAS_WIDTHS, type DocKind, type ScrapDocument } from "@/lib/scrap-types";
+import { cn } from "@/lib/utils";
 import type { Json } from "@/integrations/supabase/types";
 
 export function DocumentEditorScreen({ id, kind }: { id: string; kind: DocKind }) {
@@ -34,15 +43,20 @@ export function DocumentEditorScreen({ id, kind }: { id: string; kind: DocKind }
 }
 
 function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
+  const navigate = useNavigate();
+  const { settings } = useSettings();
   const [title, setTitle] = useState(doc.title);
   const [askOpen, setAskOpen] = useState(false);
   const [ghost, setGhost] = useState("");
+  const [counts, setCounts] = useState({ words: 0, chars: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const pending = useRef<{ title?: string; content?: Json; plain_text?: string }>({});
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const aiTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const ghostRef = useRef("");
   ghostRef.current = ghost;
+  const suggestRef = useRef(settings.ghost_autocomplete);
+  suggestRef.current = settings.ghost_autocomplete;
   const complete = useServerFn(completeText);
 
   const flush = useCallback(() => {
@@ -80,15 +94,18 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     },
     onUpdate: ({ editor: e }) => {
       queue({ content: e.getJSON() as Json, plain_text: e.getText() });
+      const text = e.getText();
+      setCounts({ words: text.trim() ? text.trim().split(/\s+/).length : 0, chars: text.length });
       setGhost("");
       clearTimeout(aiTimer.current);
+      if (!suggestRef.current) return;
       const { from, to } = e.state.selection;
       if (from !== to || from !== e.state.doc.content.size - 1) return; // only at end of doc
-      const before = e.getText();
+      const before = text;
       aiTimer.current = setTimeout(async () => {
         try {
           const res = await complete({ data: { before: before.slice(-4000), kind } });
-          if (e.getText() === before && res.suggestion) {
+          if (suggestRef.current && e.getText() === before && res.suggestion) {
             setGhost((before.endsWith(" ") || res.suggestion.startsWith(" ") ? "" : " ") + res.suggestion);
           }
         } catch {
@@ -97,6 +114,12 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       }, 1400);
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    const text = editor.getText();
+    setCounts({ words: text.trim() ? text.trim().split(/\s+/).length : 0, chars: text.length });
+  }, [editor]);
 
   useEffect(() => () => { clearTimeout(aiTimer.current); flush(); }, [flush]);
   useEffect(() => {
@@ -122,33 +145,64 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     }
   };
 
+  const moveToTrash = async () => {
+    clearTimeout(timer.current);
+    pending.current = {};
+    try {
+      await trashDocument(doc.id);
+      toast.success("Moved to Trash");
+      void navigate({ to: "/" });
+    } catch {
+      toast.error("Couldn't move that to Trash.");
+    }
+  };
+
   const menu = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button type="button" aria-label="Share and export" className="flex h-9 w-9 items-center justify-center rounded-full text-brand hover:bg-brand-soft">
-          <Download className="h-[18px] w-[18px]" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={share}><Link2 className="mr-2 h-4 w-4" />Copy view-only link</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => revokeShareLinks(doc.id).then(() => toast.success("Links turned off"))}>
-          <X className="mr-2 h-4 w-4" />Turn off shared links
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => exportMarkdown(current())}>Markdown (.md)</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => exportMnml(current())}>Minimal Notes (.mnml)</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => void exportDocx(current())}>Word (.docx)</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => canvasRef.current && void exportPng(current(), canvasRef.current)}>Image (.png)</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button" aria-label="Share and export" className="flex h-9 w-9 items-center justify-center rounded-full text-brand hover:bg-brand-soft">
+            <Download className="h-[18px] w-[18px]" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={share}><Link2 className="mr-2 h-4 w-4" />Copy view-only link</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => revokeShareLinks(doc.id).then(() => toast.success("Links turned off"))}>
+            <X className="mr-2 h-4 w-4" />Turn off shared links
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => exportMarkdown(current())}>Markdown (.md)</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => exportMnml(current())}>Minimal Notes (.mnml)</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => void exportDocx(current())}>Word (.docx)</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => canvasRef.current && void exportPng(current(), canvasRef.current)}>Image (.png)</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <button
+        type="button"
+        aria-label="Move to Trash"
+        title="Move to Trash"
+        onClick={() => void moveToTrash()}
+        className="flex h-9 w-9 items-center justify-center rounded-full text-brand hover:bg-brand-soft"
+      >
+        <Trash2 className="h-[18px] w-[18px]" />
+      </button>
+    </>
   );
+
+  const widthClass =
+    CANVAS_WIDTHS.find((w) => w.key === settings.canvas_width)?.className ?? "max-w-3xl";
 
   return (
     <div className="min-h-screen">
       <TopBar kind={kind} onAskGemini={() => setAskOpen(true)} left={menu} />
       {editor && <Toolbar editor={editor} kind={kind} />}
-      <main className="px-4 pt-24 pb-32 pr-20 sm:px-10 sm:pr-24">
-        <div ref={canvasRef} className="canvas-surface mx-auto min-h-[70vh] max-w-3xl rounded-3xl px-6 py-10 sm:px-12">
+      <main
+        className={cn(
+          "px-4 pt-24 pb-32 sm:px-10",
+          settings.toolbar_side === "left" ? "pl-20 sm:pl-24" : "pr-20 sm:pr-24",
+        )}
+      >
+        <div ref={canvasRef} className={cn("canvas-surface mx-auto min-h-[70vh] rounded-3xl px-6 py-10 sm:px-12", widthClass)}>
           <input
             value={title}
             onChange={(e) => {
@@ -169,6 +223,12 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           )}
         </div>
       </main>
+
+      {settings.show_word_count && (
+        <p className="fixed bottom-4 left-1/2 z-20 -translate-x-1/2 text-[11px] tracking-wide text-muted-foreground">
+          {counts.words} words · {counts.chars} characters
+        </p>
+      )}
 
       {askOpen && (
         <aside className="glass fixed top-3 right-3 bottom-3 z-50 flex w-[min(420px,calc(100vw-24px))] flex-col rounded-3xl p-4">
