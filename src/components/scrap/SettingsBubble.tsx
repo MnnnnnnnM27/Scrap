@@ -1,16 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { Check, LogOut, Moon, Settings, Sun, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Check, LogOut, Moon, PanelLeft, PanelRight, Settings, Sun, Trash2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/lib/settings";
 import {
   ACCENT_THEMES,
+  CANVAS_WIDTHS,
   DOC_FONTS,
   type AccentTheme,
   type ColorMode,
   type DocFont,
+  type ToolbarSide,
+  type UserSettings,
 } from "@/lib/scrap-types";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 const ACCENT_SWATCH: Record<AccentTheme, string> = {
@@ -22,9 +26,41 @@ const ACCENT_SWATCH: Record<AccentTheme, string> = {
   violet: "oklch(0.54 0.18 295)",
 };
 
+function Toggle({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-xl border border-border px-3.5 py-3">
+      <div className="min-w-0">
+        <p className="text-sm">{label}</p>
+        {hint && <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{hint}</p>}
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
 export function SettingsBubble() {
   const [open, setOpen] = useState(false);
   const { settings, update } = useSettings();
+  const set = (patch: Partial<UserSettings>) => update(patch);
 
   return (
     <>
@@ -44,16 +80,13 @@ export function SettingsBubble() {
           </SheetHeader>
 
           <div className="space-y-8 px-4 pb-10">
-            <section className="space-y-3">
-              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Appearance
-              </h3>
+            <Group title="Appearance">
               <div className="flex rounded-full bg-muted p-1">
                 {(["light", "dark"] as ColorMode[]).map((mode) => (
                   <button
                     key={mode}
                     type="button"
-                    onClick={() => update({ color_mode: mode })}
+                    onClick={() => set({ color_mode: mode })}
                     className={cn(
                       "flex flex-1 items-center justify-center gap-2 rounded-full py-2 text-sm font-medium capitalize transition-colors",
                       settings.color_mode === mode
@@ -61,27 +94,20 @@ export function SettingsBubble() {
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {mode === "light" ? (
-                      <Sun className="h-4 w-4" />
-                    ) : (
-                      <Moon className="h-4 w-4" />
-                    )}
+                    {mode === "light" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                     {mode} mode
                   </button>
                 ))}
               </div>
-            </section>
+            </Group>
 
-            <section className="space-y-3">
-              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Theme colour
-              </h3>
+            <Group title="Theme colour">
               <div className="grid grid-cols-3 gap-2">
                 {ACCENT_THEMES.map((theme) => (
                   <button
                     key={theme.key}
                     type="button"
-                    onClick={() => update({ accent_theme: theme.key })}
+                    onClick={() => set({ accent_theme: theme.key })}
                     className={cn(
                       "flex flex-col items-center gap-2 rounded-xl border p-3 text-xs transition-colors",
                       settings.accent_theme === theme.key
@@ -101,18 +127,15 @@ export function SettingsBubble() {
                 Themes adapt to the mode you're in, so they stay readable on light and dark
                 backgrounds. The writing surface always stays neutral.
               </p>
-            </section>
+            </Group>
 
-            <section className="space-y-3">
-              <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Writing font
-              </h3>
+            <Group title="Writing font">
               <div className="space-y-1.5">
                 {DOC_FONTS.map((font) => (
                   <button
                     key={font.key}
                     type="button"
-                    onClick={() => update({ font: font.key as DocFont })}
+                    onClick={() => set({ font: font.key as DocFont })}
                     className={cn(
                       "flex w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-left transition-colors",
                       settings.font === font.key
@@ -127,7 +150,72 @@ export function SettingsBubble() {
                   </button>
                 ))}
               </div>
-            </section>
+            </Group>
+
+            <Group title="Editor">
+              <div className="flex rounded-full bg-muted p-1">
+                {(["left", "right"] as ToolbarSide[]).map((sideOpt) => (
+                  <button
+                    key={sideOpt}
+                    type="button"
+                    onClick={() => set({ toolbar_side: sideOpt })}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 rounded-full py-2 text-sm font-medium transition-colors",
+                      settings.toolbar_side === sideOpt
+                        ? "bg-brand text-brand-foreground"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {sideOpt === "left" ? (
+                      <PanelLeft className="h-4 w-4" />
+                    ) : (
+                      <PanelRight className="h-4 w-4" />
+                    )}
+                    Toolbar {sideOpt}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {CANVAS_WIDTHS.map((w) => (
+                  <button
+                    key={w.key}
+                    type="button"
+                    onClick={() => set({ canvas_width: w.key })}
+                    className={cn(
+                      "rounded-xl border px-2 py-2.5 text-xs transition-colors",
+                      settings.canvas_width === w.key
+                        ? "border-brand bg-brand-soft text-brand"
+                        : "border-border hover:bg-accent",
+                    )}
+                  >
+                    {w.label}
+                  </button>
+                ))}
+              </div>
+
+              <Toggle
+                label="Word and character count"
+                hint="Shows a quiet counter in the corner while you write."
+                checked={settings.show_word_count}
+                onChange={(v) => set({ show_word_count: v })}
+              />
+            </Group>
+
+            <Group title="AI">
+              <Toggle
+                label="Ask Gemini button"
+                hint="The pill in the top bar of a note or page."
+                checked={settings.show_ask_gemini}
+                onChange={(v) => set({ show_ask_gemini: v })}
+              />
+              <Toggle
+                label="Writing suggestions"
+                hint="Suggests the next few words as you type. Press Tab to accept."
+                checked={settings.ghost_autocomplete}
+                onChange={(v) => set({ ghost_autocomplete: v })}
+              />
+            </Group>
 
             <section className="space-y-2 border-t border-border pt-6">
               <Link
