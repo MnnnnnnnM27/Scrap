@@ -52,7 +52,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (!auth.user) return;
       const { data } = await supabase
         .from("user_settings")
-        .select("font, accent_theme, color_mode")
+        .select(
+          "font, accent_theme, color_mode, toolbar_side, canvas_width, show_ask_gemini, ghost_autocomplete, show_word_count",
+        )
         .eq("user_id", auth.user.id)
         .maybeSingle();
       if (!active || !data) return;
