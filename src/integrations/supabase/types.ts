@@ -19,6 +19,7 @@ export type Database = {
           content: Json
           created_at: string
           deleted_at: string | null
+          folder_id: string | null
           id: string
           kind: string
           plain_text: string
@@ -30,6 +31,7 @@ export type Database = {
           content?: Json
           created_at?: string
           deleted_at?: string | null
+          folder_id?: string | null
           id?: string
           kind: string
           plain_text?: string
@@ -41,10 +43,49 @@ export type Database = {
           content?: Json
           created_at?: string
           deleted_at?: string | null
+          folder_id?: string | null
           id?: string
           kind?: string
           plain_text?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
           updated_at?: string
           user_id?: string
         }
@@ -107,6 +148,7 @@ export type Database = {
         Row: {
           accent_theme: string
           canvas_width: string
+          card_previews: boolean
           color_mode: string
           font: string
           ghost_autocomplete: boolean
@@ -119,6 +161,7 @@ export type Database = {
         Insert: {
           accent_theme?: string
           canvas_width?: string
+          card_previews?: boolean
           color_mode?: string
           font?: string
           ghost_autocomplete?: boolean
@@ -131,6 +174,7 @@ export type Database = {
         Update: {
           accent_theme?: string
           canvas_width?: string
+          card_previews?: boolean
           color_mode?: string
           font?: string
           ghost_autocomplete?: boolean
@@ -156,6 +200,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      purge_expired_trash: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
