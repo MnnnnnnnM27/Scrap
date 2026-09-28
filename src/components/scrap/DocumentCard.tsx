@@ -35,8 +35,8 @@ export function DocumentCard({
   doc: ScrapDocument;
   onDelete: (id: string) => void;
   preview: boolean;
-  folders?: ScrapFolder[];
-  onMove?: (docId: string, folderId: string | null) => void;
+  folders?: ScrapFolder[] | undefined;
+  onMove?: ((docId: string, folderId: string | null) => void) | undefined;
 }) {
   return (
     <div className="group relative">

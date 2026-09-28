@@ -260,8 +260,8 @@ function Section({
   onMove,
 }: {
   preview: boolean;
-  folders?: ScrapFolder[];
-  onMove?: (docId: string, folderId: string | null) => void;
+  folders?: ScrapFolder[] | undefined;
+  onMove?: ((docId: string, folderId: string | null) => void) | undefined;
   id: string;
   title: string;
   icon: React.ReactNode;
