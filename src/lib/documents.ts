@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
-import type { DocKind, ScrapDocument } from "./scrap-types";
+import type { DocKind, FolderColor, ScrapDocument, ScrapFolder } from "./scrap-types";
 
 const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] };
 
@@ -88,5 +88,34 @@ export async function revokeShareLinks(documentId: string): Promise<void> {
     .update({ revoked_at: new Date().toISOString() })
     .eq("document_id", documentId)
     .is("revoked_at", null);
+  if (error) throw error;
+}
+
+export async function listFolders(): Promise<ScrapFolder[]> {
+  const { data, error } = await supabase.from("folders").select("*").order("position").order("created_at");
+  if (error) throw error;
+  return (data ?? []) as ScrapFolder[];
+}
+
+export async function createFolder(name: string, color: FolderColor): Promise<ScrapFolder> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) throw new Error("Not signed in");
+  const { data, error } = await supabase.from("folders").insert({ user_id: auth.user.id, name, color }).select("*").single();
+  if (error) throw error;
+  return data as ScrapFolder;
+}
+
+export async function updateFolder(id: string, patch: { name?: string; color?: FolderColor }): Promise<void> {
+  const { error } = await supabase.from("folders").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteFolder(id: string): Promise<void> {
+  const { error } = await supabase.from("folders").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function moveToFolder(docId: string, folderId: string | null): Promise<void> {
+  const { error } = await supabase.from("documents").update({ folder_id: folderId }).eq("id", docId);
   if (error) throw error;
 }

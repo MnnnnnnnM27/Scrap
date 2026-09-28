@@ -1,7 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AuthGate } from "@/components/scrap/AuthGate";
 import { destroyDocument, listDocuments, restoreDocument } from "@/lib/documents";
 
@@ -29,6 +34,7 @@ function Trash() {
   const restore = useMutation({ mutationFn: restoreDocument, onSuccess: () => { refresh(); toast.success("Restored"); } });
   const destroy = useMutation({ mutationFn: destroyDocument, onSuccess: () => { refresh(); toast.success("Deleted forever"); } });
 
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   return (
     <div className="mx-auto max-w-3xl px-6 pt-16 pb-24">
       <Link to="/" className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
@@ -53,7 +59,7 @@ function Trash() {
                 <button type="button" onClick={() => restore.mutate(d.id)} className="rounded-full border border-brand px-3 py-1.5 text-[13px] text-brand hover:bg-brand-soft">Restore</button>
                 <button
                   type="button"
-                  onClick={() => confirm("Delete permanently? This can't be undone.") && destroy.mutate(d.id)}
+                  onClick={() => setConfirmId(d.id)}
                   className="rounded-full px-3 py-1.5 text-[13px] text-destructive hover:bg-destructive/10"
                 >
                   Delete permanently
@@ -63,6 +69,23 @@ function Trash() {
           })}
         </ul>
       )}
+      <AlertDialog open={!!confirmId} onOpenChange={(o) => !o && setConfirmId(null)}>
+        <AlertDialogContent className="max-w-sm rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete permanently?</AlertDialogTitle>
+            <AlertDialogDescription>This can't be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => confirmId && destroy.mutate(confirmId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

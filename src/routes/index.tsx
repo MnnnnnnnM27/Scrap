@@ -5,10 +5,12 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthGate } from "@/components/scrap/AuthGate";
 import { DocumentCard } from "@/components/scrap/DocumentCard";
-import { ScrapLogo } from "@/components/scrap/ScrapLogo";
+import { ScrapMark } from "@/components/scrap/ScrapLogo";
+import { FolderList } from "@/components/scrap/FolderList";
+import { useSettings } from "@/lib/settings";
 import { SettingsBubble } from "@/components/scrap/SettingsBubble";
-import { createDocument, listDocuments, trashDocument } from "@/lib/documents";
-import type { DocKind, ScrapDocument } from "@/lib/scrap-types";
+import { createDocument, createFolder, deleteFolder, listDocuments, listFolders, moveToFolder, trashDocument, updateFolder } from "@/lib/documents";
+import type { DocKind, ScrapDocument, ScrapFolder } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
 
 type View = "all" | "notes" | "pages";
@@ -27,6 +29,8 @@ export const Route = createFileRoute("/")({
         content: "All your quick notes and long-form pages in one calm, minimal place.",
       },
       { property: "og:title", content: "Scrap — your notes and pages" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "All your quick notes and long-form pages in one calm, minimal place.",
@@ -53,6 +57,30 @@ function Home() {
     queryKey: ["documents"],
     queryFn: () => listDocuments(false),
   });
+
+  const { settings } = useSettings();
+  const preview = settings.card_previews;
+  const { data: folders = [] } = useQuery({ queryKey: ["folders"], queryFn: listFolders });
+  const refreshAll = () => {
+    void queryClient.invalidateQueries({ queryKey: ["documents"] });
+    void queryClient.invalidateQueries({ queryKey: ["folders"] });
+  };
+  const move = useMutation({
+    mutationFn: ({ docId, folderId }: { docId: string; folderId: string | null }) => moveToFolder(docId, folderId),
+    onSuccess: refreshAll,
+    onError: () => toast.error("Couldn't move that page."),
+  });
+  const saveFolder = useMutation({
+    mutationFn: (d: { id?: string; name: string; color: ScrapFolder["color"] }) =>
+      d.id ? updateFolder(d.id, { name: d.name, color: d.color }) : createFolder(d.name, d.color).then(() => {}),
+    onSuccess: refreshAll,
+    onError: () => toast.error("Couldn't save the folder."),
+  });
+  const removeFolder = useMutation({
+    mutationFn: deleteFolder,
+    onSuccess: () => { refreshAll(); toast.success("Folder deleted — its pages are still in Pages"); },
+  });
+  const onMove = (docId: string, folderId: string | null) => move.mutate({ docId, folderId });
 
   const create = useMutation({
     mutationFn: (kind: DocKind) => createDocument(kind),
@@ -101,7 +129,8 @@ function Home() {
 
       <div className="mx-auto max-w-5xl px-6 pt-24 sm:px-10">
         <header className="mb-8">
-          <ScrapLogo wordClassName="text-[40px]" markClassName="h-9 w-9" />
+          <h1 className="sr-only">Scrap</h1>
+          <ScrapMark className="h-11 w-11 text-brand" />
           <p className="mt-2 text-[15px] text-muted-foreground">
             Quick notes and long-form pages, all in one place.
           </p>
@@ -129,6 +158,8 @@ function Home() {
         <div className="relative mb-12">
           <Search className="pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
+            type="search"
+            aria-label="Search notes and pages"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes and pages"
@@ -142,6 +173,7 @@ function Home() {
           <div className="space-y-14">
             {view !== "pages" && (
               <Section
+                preview={preview}
                 id="notes"
                 title="Notes"
                 icon={<StickyNote className="h-4 w-4" />}
@@ -150,13 +182,29 @@ function Home() {
                 onDelete={(id) => remove.mutate(id)}
               />
             )}
+            {view === "pages" && !search.trim() && (
+              <section aria-label="Folders">
+                <FolderList
+                  folders={folders}
+                  docs={filtered.pages}
+                  preview={preview}
+                  onDelete={(id) => remove.mutate(id)}
+                  onMove={onMove}
+                  onSave={(d) => saveFolder.mutate(d)}
+                  onDeleteFolder={(id) => removeFolder.mutate(id)}
+                />
+              </section>
+            )}
             {view !== "notes" && (
               <Section
+                preview={preview}
+                folders={view === "pages" ? folders : undefined}
+                onMove={onMove}
                 id="pages"
                 title="Pages"
                 icon={<FileText className="h-4 w-4" />}
-                docs={filtered.pages}
-                emptyLabel="No pages yet."
+                docs={view === "pages" && !search.trim() ? filtered.pages.filter((d) => !d.folder_id) : filtered.pages}
+                emptyLabel={view === "pages" ? "No loose pages." : "No pages yet."}
                 onDelete={(id) => remove.mutate(id)}
               />
             )}
@@ -207,7 +255,13 @@ function Section({
   docs,
   emptyLabel,
   onDelete,
+  preview,
+  folders,
+  onMove,
 }: {
+  preview: boolean;
+  folders?: ScrapFolder[] | undefined;
+  onMove?: ((docId: string, folderId: string | null) => void) | undefined;
   id: string;
   title: string;
   icon: React.ReactNode;
@@ -227,9 +281,9 @@ function Section({
           {emptyLabel}
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={preview ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "grid gap-2 sm:grid-cols-2"}>
           {docs.map((doc) => (
-            <DocumentCard key={doc.id} doc={doc} onDelete={onDelete} />
+            <DocumentCard key={doc.id} doc={doc} preview={preview} folders={folders} onMove={onMove} onDelete={onDelete} />
           ))}
         </div>
       )}

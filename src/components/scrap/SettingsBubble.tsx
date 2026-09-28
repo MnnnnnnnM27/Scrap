@@ -202,6 +202,15 @@ export function SettingsBubble() {
               />
             </Group>
 
+            <Group title="Home">
+              <Toggle
+                label="Card previews"
+                hint="On: cards show the first lines of text. Off: slim one-line pills with just the title and date."
+                checked={settings.card_previews}
+                onChange={(v) => set({ card_previews: v })}
+              />
+            </Group>
+
             <Group title="AI">
               <Toggle
                 label="Ask Gemini button"

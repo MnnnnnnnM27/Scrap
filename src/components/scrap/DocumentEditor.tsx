@@ -5,7 +5,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { Download, Link2, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ChatThread } from "@/components/scrap/ChatThread";
+import { AskPill } from "@/components/scrap/AskPill";
 import { Toolbar } from "@/components/scrap/Toolbar";
 import { TopBar } from "@/components/scrap/TopBar";
 import {
@@ -194,12 +194,12 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
 
   return (
     <div className="min-h-screen">
-      <TopBar kind={kind} onAskGemini={() => setAskOpen(true)} left={menu} />
+      <TopBar kind={kind} onAskGemini={() => setAskOpen((o) => !o)} left={menu} />
       {editor && <Toolbar editor={editor} kind={kind} />}
       <main
         className={cn(
           "px-4 pt-24 pb-32 sm:px-10",
-          settings.toolbar_side === "left" ? "pl-20 sm:pl-24" : "pr-20 sm:pr-24",
+          settings.toolbar_side === "left" ? "pl-16 sm:pl-24" : "pr-16 sm:pr-24",
         )}
       >
         <div ref={canvasRef} className={cn("canvas-surface mx-auto min-h-[70vh] rounded-3xl px-6 py-10 sm:px-12", widthClass)}>
@@ -231,19 +231,11 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       )}
 
       {askOpen && (
-        <aside className="glass fixed top-3 right-3 bottom-3 z-50 flex w-[min(420px,calc(100vw-24px))] flex-col rounded-3xl p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Ask Gemini <span className="font-normal text-muted-foreground">· this {kind}</span></h2>
-            <button type="button" aria-label="Close" onClick={() => setAskOpen(false)} className="rounded-full p-1.5 text-brand hover:bg-brand-soft">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <ChatThread
-            getBody={() => ({ documentTitle: title, documentText: editor?.getText() ?? "" })}
-            placeholder={`Ask about this ${kind}…`}
-            quickActions={["Summarize this", "Continue writing", "Rewrite more clearly", "Fix grammar"]}
-          />
-        </aside>
+        <AskPill
+          kind={kind}
+          onClose={() => setAskOpen(false)}
+          getBody={() => ({ documentTitle: title, documentText: editor?.getText() ?? "" })}
+        />
       )}
     </div>
   );
