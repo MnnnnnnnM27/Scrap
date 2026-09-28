@@ -10,7 +10,12 @@ export type ScrapDocument = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  folder_id?: string | null;
 };
+
+export type FolderColor = "graphite" | "blue" | "green" | "amber" | "red" | "purple";
+export type ScrapFolder = { id: string; user_id: string; name: string; color: FolderColor; position: number; created_at: string };
+export const FOLDER_COLORS: FolderColor[] = ["graphite", "blue", "green", "amber", "red", "purple"];
 
 export type AccentTheme = "dark-grey" | "blue" | "green" | "amber" | "rose" | "violet";
 export type ColorMode = "light" | "dark";
@@ -27,6 +32,7 @@ export type UserSettings = {
   show_ask_gemini: boolean;
   ghost_autocomplete: boolean;
   show_word_count: boolean;
+  card_previews: boolean;
 };
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -38,6 +44,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   show_ask_gemini: true,
   ghost_autocomplete: true,
   show_word_count: false,
+  card_previews: false,
 };
 
 export const ACCENT_THEMES: { key: AccentTheme; label: string }[] = [

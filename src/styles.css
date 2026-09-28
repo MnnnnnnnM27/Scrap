@@ -61,6 +61,12 @@
 }
 
 :root {
+  --folder-graphite: oklch(0.55 0.01 260);
+  --folder-blue: oklch(0.6 0.16 250);
+  --folder-green: oklch(0.62 0.15 150);
+  --folder-amber: oklch(0.72 0.15 75);
+  --folder-red: oklch(0.6 0.2 25);
+  --folder-purple: oklch(0.58 0.17 300);
   --radius: 0.875rem;
   --font-ui:
     "Instrument Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -401,3 +407,9 @@
   opacity: 0.55;
   pointer-events: none;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+@keyframes pill-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+.animate-pill-in { animation: pill-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
