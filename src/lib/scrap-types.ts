@@ -13,9 +13,9 @@ export type ScrapDocument = {
   folder_id?: string | null;
 };
 
-export type FolderColor = "graphite" | "blue" | "green" | "amber" | "red" | "purple";
+export type FolderColor = "graphite" | "marine" | "emerald" | "amber" | "coral" | "plum";
 export type ScrapFolder = { id: string; user_id: string; name: string; color: FolderColor; position: number; created_at: string };
-export const FOLDER_COLORS: FolderColor[] = ["graphite", "blue", "green", "amber", "red", "purple"];
+export const FOLDER_COLORS: FolderColor[] = ["graphite", "marine", "emerald", "amber", "coral", "plum"];
 
 export type AccentTheme = "dark-grey" | "blue" | "green" | "amber" | "rose" | "violet";
 export type ColorMode = "light" | "dark";
