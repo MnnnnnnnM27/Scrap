@@ -130,7 +130,13 @@ function Home() {
       <div className="mx-auto max-w-5xl px-6 pt-24 sm:px-10">
         <header className="mb-8">
           <h1 className="sr-only">Scrap</h1>
-          <ScrapMark className="h-11 w-11 text-brand" />
+          {view === "all" ? (
+            <ScrapMark className="h-11 w-11 text-brand" />
+          ) : (
+            <Link to="/" aria-label="Home" title="Home" className="inline-block rounded-xl text-brand transition-transform hover:scale-105 active:scale-95">
+              <ScrapMark className="h-11 w-11" />
+            </Link>
+          )}
           <p className="mt-2 text-[15px] text-muted-foreground">
             Quick notes and long-form pages, all in one place.
           </p>
@@ -227,7 +233,7 @@ function ViewSwitcher({ view, onChange }: { view: View; onChange: (v: View) => v
         className={cn(
           "pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full bg-brand transition-all duration-300 ease-out",
           view === "all" && "scale-90 opacity-0",
-          view === "pages" && "translate-x-[calc(100%+4px)]",
+          view === "pages" && "translate-x-full",
         )}
       />
       {options.map((o) => (
