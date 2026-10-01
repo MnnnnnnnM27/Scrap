@@ -10,7 +10,7 @@ function safeNext(v: unknown): string | undefined {
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>): { next?: string } => ({ next: safeNext(s.next) }),
+  validateSearch: (s: Record<string, unknown>): { next?: string | undefined } => ({ next: safeNext(s["next"]) }),
   head: () => ({
     meta: [
       { title: "Sign in — Scrap" },
