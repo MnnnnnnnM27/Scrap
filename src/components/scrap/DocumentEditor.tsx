@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -34,7 +34,9 @@ export function DocumentEditorScreen({ id, kind }: { id: string; kind: DocKind }
   const { data, isLoading, error } = useQuery({
     queryKey: ["document", id],
     queryFn: () => getDocument(id),
-    staleTime: Infinity,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
   });
   if (isLoading) return <div className="p-24 text-center text-sm text-muted-foreground">Loading…</div>;
   if (error || !data || data.deleted_at)
@@ -44,6 +46,7 @@ export function DocumentEditorScreen({ id, kind }: { id: string; kind: DocKind }
 
 function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { settings } = useSettings();
   const [title, setTitle] = useState(doc.title);
   const [askOpen, setAskOpen] = useState(false);
@@ -63,8 +66,11 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     clearTimeout(timer.current);
     const patch = pending.current;
     pending.current = {};
-    if (Object.keys(patch).length) void saveDocument(doc.id, patch).catch(() => toast.error("Couldn't save — check your connection."));
-  }, [doc.id]);
+    if (!Object.keys(patch).length) return;
+    void saveDocument(doc.id, patch)
+      .then(() => queryClient.invalidateQueries({ queryKey: ["documents"] }))
+      .catch(() => toast.error("Couldn't save — check your connection."));
+  }, [doc.id, queryClient]);
 
   const queue = useCallback(
     (patch: typeof pending.current) => {

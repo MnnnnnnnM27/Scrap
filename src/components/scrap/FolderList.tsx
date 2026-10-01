@@ -108,7 +108,7 @@ export function FolderList({
       })}
       <button
         type="button"
-        onClick={() => setDraft({ name: "", color: "blue" })}
+        onClick={() => setDraft({ name: "", color: "marine" })}
         className="flex min-h-11 items-center gap-2 rounded-xl px-2 text-[14px] text-brand transition-colors hover:bg-accent/60"
       >
         <FolderPlus className="h-[18px] w-[18px]" /> New folder
