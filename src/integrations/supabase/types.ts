@@ -150,11 +150,15 @@ export type Database = {
           canvas_width: string
           card_previews: boolean
           color_mode: string
+          confirm_trash: boolean
           font: string
           ghost_autocomplete: boolean
           show_ask_gemini: boolean
           show_word_count: boolean
+          slash_commands: boolean
+          spellcheck: boolean
           toolbar_side: string
+          typeliner: boolean
           updated_at: string
           user_id: string
         }
@@ -163,11 +167,15 @@ export type Database = {
           canvas_width?: string
           card_previews?: boolean
           color_mode?: string
+          confirm_trash?: boolean
           font?: string
           ghost_autocomplete?: boolean
           show_ask_gemini?: boolean
           show_word_count?: boolean
+          slash_commands?: boolean
+          spellcheck?: boolean
           toolbar_side?: string
+          typeliner?: boolean
           updated_at?: string
           user_id: string
         }
@@ -176,11 +184,15 @@ export type Database = {
           canvas_width?: string
           card_previews?: boolean
           color_mode?: string
+          confirm_trash?: boolean
           font?: string
           ghost_autocomplete?: boolean
           show_ask_gemini?: boolean
           show_word_count?: boolean
+          slash_commands?: boolean
+          spellcheck?: boolean
           toolbar_side?: string
+          typeliner?: boolean
           updated_at?: string
           user_id?: string
         }

@@ -101,7 +101,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Google+Sans:ital,wght@0,400..700;1,400..700&family=Caveat:wght@400..700&family=JetBrains+Mono:wght@400;500;600&display=swap",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700,400i&display=swap",
       },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],

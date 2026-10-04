@@ -3,6 +3,8 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { FontFamily, FontSize, TextStyle } from "@tiptap/extension-text-style";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
+import Image from "@tiptap/extension-image";
 import type { DocKind } from "./scrap-types";
 
 export function buildExtensions(kind: DocKind, placeholder = true) {
@@ -17,6 +19,11 @@ export function buildExtensions(kind: DocKind, placeholder = true) {
     FontFamily,
     FontSize,
     TextAlign.configure({ types: ["heading", "paragraph"] }),
+    Table.configure({ resizable: false }),
+    TableRow,
+    TableHeader,
+    TableCell,
+    Image.configure({ allowBase64: true }),
   ];
   if (placeholder) {
     base.push(

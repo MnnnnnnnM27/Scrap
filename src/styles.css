@@ -229,17 +229,20 @@
   --font-doc:
     ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
 }
-[data-doc-font="instrument"] {
-  --font-doc: "Instrument Sans", ui-sans-serif, sans-serif;
+[data-doc-font="switzer"] {
+  --font-doc: "Switzer", ui-sans-serif, sans-serif;
+}
+[data-doc-font="google-sans"] {
+  --font-doc: "Google Sans", ui-sans-serif, sans-serif;
 }
 [data-doc-font="literata"] {
   --font-doc: "Literata", ui-serif, Georgia, serif;
 }
-[data-doc-font="newsreader"] {
-  --font-doc: "Newsreader", ui-serif, Georgia, serif;
+[data-doc-font="cursive"] {
+  --font-doc: "Caveat", cursive;
 }
-[data-doc-font="mono"] {
-  --font-doc: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+[data-doc-font="cursive"] .scrap-editor .ProseMirror {
+  font-size: 1.3em;
 }
 
 @layer base {
@@ -413,3 +416,83 @@
 }
 @keyframes pill-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
 .animate-pill-in { animation: pill-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+
+/* ---------- v3: tables, images, dividers ---------- */
+.scrap-editor .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  table-layout: fixed;
+  overflow: hidden;
+  border-radius: 10px;
+}
+.scrap-editor .ProseMirror th,
+.scrap-editor .ProseMirror td {
+  border: 1px solid var(--border);
+  padding: 0.45em 0.7em;
+  vertical-align: top;
+  position: relative;
+}
+.scrap-editor .ProseMirror th {
+  background: var(--muted);
+  font-weight: 600;
+  text-align: left;
+}
+.scrap-editor .ProseMirror th p,
+.scrap-editor .ProseMirror td p {
+  margin: 0;
+}
+.scrap-editor .ProseMirror .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--foreground) 6%, transparent);
+  pointer-events: none;
+}
+.scrap-editor .ProseMirror .tableWrapper {
+  overflow-x: auto;
+}
+.scrap-editor .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 0.75em 0;
+  display: block;
+}
+.scrap-editor .ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.scrap-editor .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5em 0;
+}
+
+/* ---------- Print / Save as PDF ---------- */
+@media print {
+  @page {
+    margin: 18mm;
+  }
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+  .print-area {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    min-height: 0 !important;
+  }
+  .print-shell {
+    padding: 0 !important;
+  }
+}

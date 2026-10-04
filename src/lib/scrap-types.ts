@@ -19,7 +19,7 @@ export const FOLDER_COLORS: FolderColor[] = ["graphite", "marine", "emerald", "a
 
 export type AccentTheme = "dark-grey" | "blue" | "green" | "amber" | "rose" | "violet";
 export type ColorMode = "light" | "dark";
-export type DocFont = "default" | "instrument" | "literata" | "newsreader" | "mono";
+export type DocFont = "default" | "cursive" | "switzer" | "google-sans" | "literata";
 export type ToolbarSide = "left" | "right";
 export type CanvasWidth = "narrow" | "standard" | "wide";
 
@@ -33,6 +33,10 @@ export type UserSettings = {
   ghost_autocomplete: boolean;
   show_word_count: boolean;
   card_previews: boolean;
+  typeliner: boolean;
+  spellcheck: boolean;
+  slash_commands: boolean;
+  confirm_trash: boolean;
 };
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -45,6 +49,10 @@ export const DEFAULT_SETTINGS: UserSettings = {
   ghost_autocomplete: true,
   show_word_count: false,
   card_previews: false,
+  typeliner: false,
+  spellcheck: true,
+  slash_commands: true,
+  confirm_trash: false,
 };
 
 export const ACCENT_THEMES: { key: AccentTheme; label: string }[] = [
@@ -63,17 +71,17 @@ export const CANVAS_WIDTHS: { key: CanvasWidth; label: string; className: string
 ];
 
 export const DOC_FONTS: { key: DocFont; label: string; sample: string }[] = [
-  { key: "default", label: "Default", sample: "system-ui" },
-  { key: "instrument", label: "Instrument Sans", sample: "'Instrument Sans', sans-serif" },
+  { key: "default", label: "Default", sample: "-apple-system, system-ui, sans-serif" },
+  { key: "switzer", label: "Switzer", sample: "Switzer, sans-serif" },
+  { key: "google-sans", label: "Google Sans", sample: "'Google Sans', sans-serif" },
   { key: "literata", label: "Literata", sample: "Literata, serif" },
-  { key: "newsreader", label: "Newsreader", sample: "Newsreader, serif" },
-  { key: "mono", label: "JetBrains Mono", sample: "'JetBrains Mono', monospace" },
+  { key: "cursive", label: "Cursive", sample: "Caveat, cursive" },
 ];
 
 export const PAGE_FONT_FAMILIES = [
   { label: "Default", value: "" },
-  { label: "Instrument Sans", value: "'Instrument Sans', sans-serif" },
+  { label: "Switzer", value: "Switzer, sans-serif" },
+  { label: "Google Sans", value: "'Google Sans', sans-serif" },
   { label: "Literata", value: "Literata, serif" },
-  { label: "Newsreader", value: "Newsreader, serif" },
-  { label: "JetBrains Mono", value: "'JetBrains Mono', monospace" },
+  { label: "Cursive", value: "Caveat, cursive" },
 ];
