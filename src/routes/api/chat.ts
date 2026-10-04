@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { convertToModelMessages, stepCountIs, streamText, tool, type UIMessage } from "ai";
+import { convertToModelMessages, stepCountIs, streamText, tool, type ToolSet, type UIMessage } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider, GEMINI_MODEL } from "@/lib/ai-gateway.server";
 
@@ -73,7 +73,7 @@ export const Route = createFileRoute("/api/chat")({
             system,
             messages: await convertToModelMessages(body.messages as UIMessage[]),
             abortSignal: request.signal,
-            ...(hasDoc ? { tools: docTools, stopWhen: stepCountIs(1) } : {}),
+            ...(hasDoc ? { tools: docTools as unknown as ToolSet, stopWhen: stepCountIs(1) } : {}),
           });
           return result.toUIMessageStreamResponse({
             originalMessages: body.messages as UIMessage[],
