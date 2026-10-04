@@ -19,7 +19,9 @@ function readLocal(): UserSettings {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<UserSettings>) };
+    const v = { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<UserSettings>) };
+    if (!["default", "cursive", "switzer", "google-sans", "literata"].includes(v.font)) v.font = "default";
+    return v;
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -53,12 +55,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const { data } = await supabase
         .from("user_settings")
         .select(
-          "font, accent_theme, color_mode, toolbar_side, canvas_width, show_ask_gemini, ghost_autocomplete, show_word_count, card_previews",
+          "font, accent_theme, color_mode, toolbar_side, canvas_width, show_ask_gemini, ghost_autocomplete, show_word_count, card_previews, typeliner, spellcheck, slash_commands, confirm_trash",
         )
         .eq("user_id", auth.user.id)
         .maybeSingle();
       if (!active || !data) return;
       const next = { ...DEFAULT_SETTINGS, ...(data as Partial<UserSettings>) };
+      if (!["default", "cursive", "switzer", "google-sans", "literata"].includes(next.font)) next.font = "default";
       setSettings(next);
       applyToDom(next);
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
