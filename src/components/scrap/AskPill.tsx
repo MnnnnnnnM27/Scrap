@@ -16,18 +16,28 @@ export function AskPill({
   getBody,
   kind,
   onClose,
+  onTool,
 }: {
   getBody: () => Record<string, unknown>;
   kind: string;
   onClose: () => void;
+  onTool?: (name: string, input: Record<string, unknown>) => string;
 }) {
   const bodyRef = useRef(getBody);
   bodyRef.current = getBody;
+  const toolRef = useRef(onTool);
+  toolRef.current = onTool;
   const transport = useMemo(
     () => new DefaultChatTransport({ api: "/api/chat", body: () => bodyRef.current() }),
     [],
   );
-  const { messages, sendMessage, status, error } = useChat({ transport });
+  const { messages, sendMessage, status, error, addToolOutput } = useChat({
+    transport,
+    onToolCall: ({ toolCall }) => {
+      const out = toolRef.current?.(toolCall.toolName, (toolCall.input ?? {}) as Record<string, unknown>) ?? "unavailable";
+      void addToolOutput({ tool: toolCall.toolName as never, toolCallId: toolCall.toolCallId, output: out as never });
+    },
+  });
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
@@ -69,7 +79,13 @@ export function AskPill({
                     : "text-[14px] leading-relaxed whitespace-pre-wrap"
                 }
               >
-                {m.parts.map((p, i) => (p.type === "text" ? <span key={i}>{p.text}</span> : null))}
+                {m.parts.map((p, i) =>
+                  p.type === "text" ? (
+                    <span key={i}>{p.text}</span>
+                  ) : p.type.startsWith("tool-") ? (
+                    <span key={i} className="block text-[12px] text-muted-foreground">✓ Edited document</span>
+                  ) : null,
+                )}
               </div>
             </div>
           ))}

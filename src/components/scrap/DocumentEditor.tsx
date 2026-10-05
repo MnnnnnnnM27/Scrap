@@ -6,6 +6,9 @@ import { Download, Link2, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AskPill } from "@/components/scrap/AskPill";
+import { SlashMenu, type SlashState } from "@/components/scrap/SlashMenu";
+import { applyDocTool } from "@/lib/doc-actions";
+import { Printer } from "lucide-react";
 import { Toolbar } from "@/components/scrap/Toolbar";
 import { TopBar } from "@/components/scrap/TopBar";
 import {
@@ -50,6 +53,8 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   const { settings } = useSettings();
   const [title, setTitle] = useState(doc.title);
   const [askOpen, setAskOpen] = useState(false);
+  const [slash, setSlash] = useState<SlashState | null>(null);
+  const slashKeyRef = useRef<((e: KeyboardEvent) => boolean) | null>(null);
   const [ghost, setGhost] = useState("");
   const [counts, setCounts] = useState({ words: 0, chars: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -81,6 +86,23 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     [flush],
   );
 
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
+  const track = (e: NonNullable<ReturnType<typeof useEditor>>) => {
+    const { $from, empty } = e.state.selection;
+    if (settingsRef.current.typeliner && e.isFocused) {
+      const c = e.view.coordsAtPos($from.pos);
+      window.scrollBy({ top: c.top - window.innerHeight / 2, behavior: "smooth" });
+    }
+    if (!settingsRef.current.slash_commands || !empty) return setSlash(null);
+    const before = $from.parent.textBetween(0, $from.parentOffset, undefined, "\ufffc");
+    const m = /^\/(\w*)$/.exec(before);
+    if (!m) return setSlash(null);
+    const c = e.view.coordsAtPos($from.pos);
+    setSlash({ query: m[1] ?? "", from: $from.pos - before.length, to: $from.pos, top: c.top, left: c.left });
+  };
+
   const editor = useEditor({
     extensions: buildExtensions(kind),
     content: doc.content as object,
@@ -88,6 +110,10 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     editorProps: {
       attributes: { class: "outline-none" },
       handleKeyDown: (view, event) => {
+        if (slashKeyRef.current?.(event)) {
+          event.preventDefault();
+          return true;
+        }
         if (event.key === "Tab" && ghostRef.current) {
           event.preventDefault();
           view.dispatch(view.state.tr.insertText(ghostRef.current));
@@ -98,8 +124,10 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
         return false;
       },
     },
+    onSelectionUpdate: ({ editor: e }) => track(e),
     onUpdate: ({ editor: e }) => {
       queue({ content: e.getJSON() as Json, plain_text: e.getText() });
+      track(e);
       const text = e.getText();
       setCounts({ words: text.trim() ? text.trim().split(/\s+/).length : 0, chars: text.length });
       setGhost("");
@@ -152,6 +180,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   };
 
   const moveToTrash = async () => {
+    if (settings.confirm_trash && !window.confirm("Move this to Trash?")) return;
     clearTimeout(timer.current);
     pending.current = {};
     try {
@@ -181,6 +210,8 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           <DropdownMenuItem onClick={() => exportMnml(current())}>Minimal Notes (.mnml)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => void exportDocx(current())}>Word (.docx)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => canvasRef.current && void exportPng(current(), canvasRef.current)}>Image (.png)</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setTimeout(() => window.print(), 100)}><Printer className="mr-2 h-4 w-4" />Print / Save as PDF</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <button
@@ -218,7 +249,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
             placeholder="Untitled"
             className="mb-6 w-full bg-transparent font-[family-name:var(--font-doc)] text-3xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground/60"
           />
-          <div className="scrap-editor">
+          <div className="scrap-editor" spellCheck={settings.spellcheck}>
             <EditorContent editor={editor} />
           </div>
           {ghost && (
@@ -231,9 +262,20 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       </main>
 
       {settings.show_word_count && (
-        <p className="fixed bottom-4 left-1/2 z-20 -translate-x-1/2 text-[11px] tracking-wide text-muted-foreground">
+        <p className="no-print fixed bottom-4 left-1/2 z-20 -translate-x-1/2 text-[11px] tracking-wide text-muted-foreground">
           {counts.words} words · {counts.chars} characters
         </p>
+      )}
+
+      {editor && slash && (
+        <SlashMenu
+          editor={editor}
+          kind={kind}
+          state={slash}
+          keyRef={slashKeyRef}
+          onClose={() => setSlash(null)}
+          onAsk={() => { setSlash(null); setAskOpen(true); }}
+        />
       )}
 
       {askOpen && (
@@ -241,6 +283,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           kind={kind}
           onClose={() => setAskOpen(false)}
           getBody={() => ({ documentTitle: title, documentText: editor?.getText() ?? "" })}
+          onTool={(name, input) => (editor ? applyDocTool(editor, name, input) : "no editor")}
         />
       )}
     </div>
