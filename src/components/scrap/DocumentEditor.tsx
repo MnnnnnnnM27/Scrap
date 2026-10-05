@@ -231,8 +231,8 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
 
   return (
     <div className="min-h-screen">
-      <TopBar kind={kind} onAskGemini={() => setAskOpen((o) => !o)} left={menu} />
-      {editor && <Toolbar editor={editor} kind={kind} />}
+      <div className="no-print"><TopBar kind={kind} onAskGemini={() => setAskOpen((o) => !o)} left={menu} /></div>
+      {editor && <div className="no-print"><Toolbar editor={editor} kind={kind} /></div>}
       <main
         className={cn(
           "px-4 pt-24 pb-32 sm:px-10",
