@@ -38,10 +38,10 @@ function Toggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-xl border border-border px-3.5 py-3">
+    <div className="flex min-h-11 items-center justify-between gap-4 px-3.5 py-2.5">
       <div className="min-w-0">
-        <p className="text-sm">{label}</p>
-        {hint && <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{hint}</p>}
+        <p className="text-[15px]">{label}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>
@@ -123,10 +123,7 @@ export function SettingsBubble() {
                   </button>
                 ))}
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Themes adapt to the mode you're in, so they stay readable on light and dark
-                backgrounds. The writing surface always stays neutral.
-              </p>
+              <p className="text-xs text-muted-foreground">Adapts to light and dark.</p>
             </Group>
 
             <Group title="Writing font">
@@ -194,36 +191,26 @@ export function SettingsBubble() {
                 ))}
               </div>
 
-              <Toggle
-                label="Word and character count"
-                hint="Shows a quiet counter in the corner while you write."
-                checked={settings.show_word_count}
-                onChange={(v) => set({ show_word_count: v })}
-              />
+              <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                <Toggle label="Word count" hint="Quiet counter at the bottom." checked={settings.show_word_count} onChange={(v) => set({ show_word_count: v })} />
+                <Toggle label="TypeLiner" hint="Keeps your line centered." checked={settings.typeliner} onChange={(v) => set({ typeliner: v })} />
+                <Toggle label="/ commands" hint="Type / for tables, charts, more." checked={settings.slash_commands} onChange={(v) => set({ slash_commands: v })} />
+                <Toggle label="Spellcheck" checked={settings.spellcheck} onChange={(v) => set({ spellcheck: v })} />
+                <Toggle label="Confirm before Trash" checked={settings.confirm_trash} onChange={(v) => set({ confirm_trash: v })} />
+              </div>
             </Group>
 
             <Group title="Home">
-              <Toggle
-                label="Card previews"
-                hint="On: cards show the first lines of text. Off: slim one-line pills with just the title and date."
-                checked={settings.card_previews}
-                onChange={(v) => set({ card_previews: v })}
-              />
+              <div className="overflow-hidden rounded-xl border border-border">
+                <Toggle label="Card previews" hint="Off shows slim title-only pills." checked={settings.card_previews} onChange={(v) => set({ card_previews: v })} />
+              </div>
             </Group>
 
             <Group title="AI">
-              <Toggle
-                label="Ask Gemini button"
-                hint="The pill in the top bar of a note or page."
-                checked={settings.show_ask_gemini}
-                onChange={(v) => set({ show_ask_gemini: v })}
-              />
-              <Toggle
-                label="Writing suggestions"
-                hint="Suggests the next few words as you type. Press Tab to accept."
-                checked={settings.ghost_autocomplete}
-                onChange={(v) => set({ ghost_autocomplete: v })}
-              />
+              <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                <Toggle label="Ask Gemini button" checked={settings.show_ask_gemini} onChange={(v) => set({ show_ask_gemini: v })} />
+                <Toggle label="Writing suggestions" hint="Press Tab to accept." checked={settings.ghost_autocomplete} onChange={(v) => set({ ghost_autocomplete: v })} />
+              </div>
             </Group>
 
             <section className="space-y-2 border-t border-border pt-6">
