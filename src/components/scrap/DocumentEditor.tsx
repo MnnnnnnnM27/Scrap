@@ -1,3 +1,4 @@
+import { printDocument } from "@/lib/print-doc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -211,7 +212,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           <DropdownMenuItem onClick={() => void exportDocx(current())}>Word (.docx)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => canvasRef.current && void exportPng(current(), canvasRef.current)}>Image (.png)</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setTimeout(() => window.print(), 100)}><Printer className="mr-2 h-4 w-4" />Print / Save as PDF</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => editor && printDocument(title, editor.getHTML())}><Printer className="mr-2 h-4 w-4" />Print / Save as PDF</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <button

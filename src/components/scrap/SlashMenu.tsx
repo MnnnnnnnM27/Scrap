@@ -1,3 +1,4 @@
+import { printDocument } from "@/lib/print-doc";
 import type { Editor } from "@tiptap/react";
 import {
   BarChart3, CheckSquare, Heading1, Heading2, Heading3, ImageIcon, List, ListOrdered,
@@ -43,7 +44,7 @@ function items(kind: DocKind, onAsk: () => void, onImage: () => void): Item[] {
     { key: "chart", label: "Chart", hint: "Bar, line, pie", icon: BarChart3, ai: "e.g. sales by month 2025" },
     { key: "aiimage", label: "AI image", hint: "Generate picture", icon: Wand2, ai: "e.g. a foggy pine forest" },
     { key: "ai", label: "Ask Gemini", hint: "Write or edit", icon: Sparkles, run: () => onAsk() },
-    { key: "pdf", label: "Print / PDF", hint: "Save as PDF", icon: Printer, run: () => setTimeout(() => window.print(), 50) },
+    { key: "pdf", label: "Print / PDF", hint: "Save as PDF", icon: Printer, run: () => printDocument("", editor.getHTML()) },
   );
   return list;
 }
