@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Plus, Search, Sparkle, StickyNote, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDashboardSettings, readDashboardNow } from "@/lib/dashboard-settings";
 import { toast } from "sonner";
 import { AuthGate } from "@/components/scrap/AuthGate";
 import { DocumentCard } from "@/components/scrap/DocumentCard";
@@ -49,6 +50,17 @@ function Home() {
   const queryClient = useQueryClient();
   const { view = "all" } = Route.useSearch();
   const [search, setSearch] = useState("");
+  const { dash } = useDashboardSettings();
+  // "Start on Dashboard": redirect once per browser session when opening Home plainly.
+  useEffect(() => {
+    const d = readDashboardNow();
+    if (view === "all" && d.enabled && d.start_on_dashboard && !sessionStorage.getItem("scrap.dashSeen")) {
+      sessionStorage.setItem("scrap.dashSeen", "1");
+      void navigate({ to: "/dashboard", replace: true });
+    }
+    sessionStorage.setItem("scrap.dashSeen", "1");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setView = (next: View) =>
     void navigate({ to: "/", search: next === "all" ? {} : { view: next }, replace: true });
@@ -130,12 +142,16 @@ function Home() {
       <div className="mx-auto max-w-5xl px-6 pt-24 sm:px-10">
         <header className="mb-8">
           <h1 className="sr-only">Scrap</h1>
-          {view === "all" ? (
-            <ScrapMark className="h-11 w-11 text-brand" />
-          ) : (
+          {view !== "all" ? (
             <Link to="/" aria-label="Home" title="Home" className="inline-block rounded-xl text-brand transition-transform hover:scale-105 active:scale-95">
               <ScrapMark className="h-11 w-11" />
             </Link>
+          ) : dash.enabled ? (
+            <Link to="/dashboard" aria-label="Dashboard" title="Dashboard" className="inline-block rounded-xl text-brand transition-transform hover:scale-105 active:scale-95">
+              <ScrapMark className="h-11 w-11" />
+            </Link>
+          ) : (
+            <ScrapMark className="h-11 w-11 text-brand" />
           )}
           <p className="mt-2 text-[15px] text-muted-foreground">
             Quick notes and long-form pages, all in one place.

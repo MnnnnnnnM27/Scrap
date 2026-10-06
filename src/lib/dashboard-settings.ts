@@ -67,3 +67,7 @@ export function useDashboardSettings() {
   }, []);
   return { dash: settings, updateDash: update, readDash: read };
 }
+
+export function readDashboardNow(): DashboardSettings {
+  return typeof window === "undefined" ? DEFAULT_DASHBOARD : read();
+}
