@@ -3,6 +3,7 @@ import { Check, LogOut, Moon, PanelLeft, PanelRight, Settings, Sun, Trash2 } fro
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/lib/settings";
+import { useDashboardSettings, WIDGETS } from "@/lib/dashboard-settings";
 import {
   ACCENT_THEMES,
   CANVAS_WIDTHS,
@@ -61,6 +62,7 @@ export function SettingsBubble() {
   const [open, setOpen] = useState(false);
   const { settings, update } = useSettings();
   const set = (patch: Partial<UserSettings>) => update(patch);
+  const { dash, updateDash } = useDashboardSettings();
 
   return (
     <>
@@ -204,6 +206,53 @@ export function SettingsBubble() {
               <div className="overflow-hidden rounded-xl border border-border">
                 <Toggle label="Card previews" hint="Off shows slim title-only pills." checked={settings.card_previews} onChange={(v) => set({ card_previews: v })} />
               </div>
+            </Group>
+
+            <Group title="Dashboard">
+              <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                <Toggle label="Dashboard" hint="Tap the S on Home to open." checked={dash.enabled} onChange={(v) => updateDash({ enabled: v })} />
+                {dash.enabled && (
+                  <Toggle label="Start on Dashboard" hint="Opens first each visit." checked={dash.start_on_dashboard} onChange={(v) => updateDash({ start_on_dashboard: v })} />
+                )}
+              </div>
+              {dash.enabled && (
+                <>
+                  <p className="pt-1 text-xs text-muted-foreground">Clock</p>
+                  <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                    <Toggle label="24-hour time" checked={dash.clock_24h} onChange={(v) => updateDash({ clock_24h: v })} />
+                    <Toggle label="Seconds" checked={dash.show_seconds} onChange={(v) => updateDash({ show_seconds: v })} />
+                    <Toggle label="Date" checked={dash.show_date} onChange={(v) => updateDash({ show_date: v })} />
+                    <Toggle label="Greeting" hint="Good morning, etc." checked={dash.show_greeting} onChange={(v) => updateDash({ show_greeting: v })} />
+                  </div>
+                  <p className="pt-1 text-xs text-muted-foreground">Widgets</p>
+                  <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                    {WIDGETS.map((w) => (
+                      <Toggle
+                        key={w.key}
+                        label={w.label}
+                        hint={w.hint}
+                        checked={dash.widgets[w.key]}
+                        onChange={(v) => updateDash({ widgets: { ...dash.widgets, [w.key]: v } })}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex rounded-full bg-muted p-1">
+                    {(["f", "c"] as const).map((u) => (
+                      <button
+                        key={u}
+                        type="button"
+                        onClick={() => updateDash({ temp_unit: u })}
+                        className={cn(
+                          "flex-1 rounded-full py-2 text-sm font-medium transition-colors",
+                          dash.temp_unit === u ? "bg-brand text-brand-foreground" : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        °{u.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </Group>
 
             <Group title="AI">
