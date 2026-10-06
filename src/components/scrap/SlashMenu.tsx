@@ -44,7 +44,7 @@ function items(kind: DocKind, onAsk: () => void, onImage: () => void): Item[] {
     { key: "chart", label: "Chart", hint: "Bar, line, pie", icon: BarChart3, ai: "e.g. sales by month 2025" },
     { key: "aiimage", label: "AI image", hint: "Generate picture", icon: Wand2, ai: "e.g. a foggy pine forest" },
     { key: "ai", label: "Ask Gemini", hint: "Write or edit", icon: Sparkles, run: () => onAsk() },
-    { key: "pdf", label: "Print / PDF", hint: "Save as PDF", icon: Printer, run: () => printDocument("", editor.getHTML()) },
+    { key: "pdf", label: "Print / PDF", hint: "Save as PDF", icon: Printer, run: (e) => printDocument("", e.getHTML()) },
   );
   return list;
 }
