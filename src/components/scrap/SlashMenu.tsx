@@ -7,11 +7,14 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { generateChart, generateImage, generateTable } from "@/lib/ai.functions";
+import { generateChart, generateImage, generateTable, writeForDoc } from "@/lib/ai.functions";
 import { renderChartPng, fileToDataUrl } from "@/lib/chart-image";
 import { markdownToHtml } from "@/lib/markdown-html";
 import type { DocKind } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
+
+export type TaskResult = { html?: string; image?: { src: string; alt: string } };
+export type StartTask = (label: string, job: () => Promise<TaskResult>) => void;
 
 export type SlashState = { query: string; from: number; to: number; top: number; left: number };
 
@@ -43,15 +46,16 @@ function items(kind: DocKind, onAsk: () => void, onImage: () => void): Item[] {
     { key: "aitable", label: "AI table", hint: "Describe it", icon: Table, ai: "e.g. weekly workout plan" },
     { key: "chart", label: "Chart", hint: "Bar, line, pie", icon: BarChart3, ai: "e.g. sales by month 2025" },
     { key: "aiimage", label: "AI image", hint: "Generate picture", icon: Wand2, ai: "e.g. a foggy pine forest" },
-    { key: "ai", label: "Ask Gemini", hint: "Write or edit", icon: Sparkles, run: () => onAsk() },
-    { key: "pdf", label: "Print / PDF", hint: "Save as PDF", icon: Printer, run: (e) => printDocument("", e.getHTML()) },
+    { key: "ai", label: "Ask Gemini", hint: "Write here", icon: Sparkles, ai: "e.g. intro paragraph about bees" },
+    { key: "pdf", label: "Print", hint: "Just the text", icon: Printer, run: (e) => printDocument("", e.getHTML()) },
   );
   return list;
 }
 
 export function SlashMenu({
-  editor, kind, state, onClose, onAsk, keyRef,
+  editor, kind, state, onClose, onAsk, keyRef, startTask,
 }: {
+  startTask: StartTask;
   editor: Editor;
   kind: DocKind;
   state: SlashState;
@@ -63,10 +67,11 @@ export function SlashMenu({
   const [active, setActive] = useState(0);
   const [aiItem, setAiItem] = useState<Item | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [busy, setBusy] = useState(false);
+  const busy = false;
   const table = useServerFn(generateTable);
   const chart = useServerFn(generateChart);
   const image = useServerFn(generateImage);
+  const write = useServerFn(writeForDoc);
 
   const all = items(kind, onAsk, () => fileRef.current?.click());
   const q = state.query.toLowerCase();
@@ -86,32 +91,33 @@ export function SlashMenu({
     if (item.key !== "picture") onClose();
   };
 
-  const runAi = async () => {
-    if (!aiItem || !prompt.trim() || busy) return;
-    setBusy(true);
+  const runAi = () => {
+    if (!aiItem || !prompt.trim()) return;
     const context = editor.getText().slice(-3000);
-    try {
-      if (aiItem.key === "aitable") {
-        const r = await table({ data: { prompt, context } });
+    const p = prompt;
+    const k = aiItem.key;
+    clearSlash();
+    onClose();
+    startTask(p.length > 22 ? p.slice(0, 22) + "…" : p, async (): Promise<TaskResult> => {
+      if (k === "aitable") {
+        const r = await table({ data: { prompt: p, context } });
         if (r.error || !r.markdown) throw new Error(r.error ?? "No table");
-        clearSlash();
-        editor.chain().focus().insertContent(markdownToHtml(r.markdown)).run();
-      } else if (aiItem.key === "chart") {
-        const r = await chart({ data: { prompt, context } });
-        if (!r.spec) throw new Error((r as { error?: string }).error ?? "No chart");
-        clearSlash();
-        editor.chain().focus().setImage({ src: renderChartPng(r.spec), alt: r.spec.title }).run();
-      } else {
-        const r = await image({ data: { prompt } });
-        if (r.error || !r.dataUrl) throw new Error(r.error ?? "No image");
-        clearSlash();
-        editor.chain().focus().setImage({ src: r.dataUrl, alt: prompt }).run();
+        return { html: markdownToHtml(r.markdown) };
       }
-      onClose();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Gemini couldn't make that.");
-      setBusy(false);
-    }
+      if (k === "chart") {
+        const r = await chart({ data: { prompt: p, context } });
+        if (!r.spec) throw new Error((r as { error?: string }).error ?? "No chart");
+        return { image: { src: renderChartPng(r.spec), alt: r.spec.title } };
+      }
+      if (k === "ai") {
+        const r = await write({ data: { prompt: p, context } });
+        if (r.error || !r.markdown) throw new Error(r.error ?? "No answer");
+        return { html: markdownToHtml(r.markdown) };
+      }
+      const r = await image({ data: { prompt: p } });
+      if (r.error || !r.dataUrl) throw new Error(r.error ?? "No image");
+      return { image: { src: r.dataUrl, alt: p } };
+    });
   };
 
   keyRef.current = (e) => {
@@ -142,7 +148,7 @@ export function SlashMenu({
         }}
       />
       {aiItem ? (
-        <form className="p-2" onSubmit={(e) => { e.preventDefault(); void runAi(); }}>
+        <form className="p-2" onSubmit={(e) => { e.preventDefault(); runAi(); }}>
           <p className="px-1.5 pb-1.5 text-xs font-medium text-muted-foreground">{aiItem.label}</p>
           <input
             autoFocus
@@ -153,7 +159,7 @@ export function SlashMenu({
             placeholder={aiItem.ai}
             className="w-full rounded-xl bg-muted px-3 py-2 text-sm outline-none"
           />
-          <p className="px-1.5 pt-1.5 text-[11px] text-muted-foreground">{busy ? "Making it…" : "Enter to create · Esc to cancel"}</p>
+          <p className="px-1.5 pt-1.5 text-[11px] text-muted-foreground">Enter to start · keep writing while it works</p>
         </form>
       ) : shown.length === 0 ? (
         <p className="p-3 text-sm text-muted-foreground">No matches</p>
