@@ -28,7 +28,7 @@ export const Route = createFileRoute("/research")({
 });
 
 function Research() {
-  const [chatId, setChatId] = useState(() => crypto.randomUUID());
+  const [chatId, setChatId] = useState<string>(() => crypto.randomUUID());
   const [open, setOpen] = useState(false);
   const [chats, setChats] = useState<SavedChat[]>([]);
   const openHistory = () => {

@@ -67,7 +67,7 @@ export function SlashMenu({
   const [active, setActive] = useState(0);
   const [aiItem, setAiItem] = useState<Item | null>(null);
   const [prompt, setPrompt] = useState("");
-  const busy = false;
+  const busy = false as boolean;
   const table = useServerFn(generateTable);
   const chart = useServerFn(generateChart);
   const image = useServerFn(generateImage);
