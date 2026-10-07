@@ -30,7 +30,7 @@ export function saveChat(id: string, source: SavedChat["source"], messages: UIMe
   if (!messages.length) return;
   const rest = listChats().filter((c) => c.id !== id);
   const prev = getChat(id);
-  const chat: SavedChat = { id, source, messages, updatedAt: Date.now(), title: prev?.title ?? titleFor(messages) };
+  const chat: SavedChat = { id, source: prev?.source ?? source, messages, updatedAt: Date.now(), title: prev?.title ?? titleFor(messages) };
   try {
     localStorage.setItem(KEY, JSON.stringify([chat, ...rest].slice(0, 60)));
   } catch {
