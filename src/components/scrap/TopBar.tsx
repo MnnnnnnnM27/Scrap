@@ -28,7 +28,7 @@ export function TopBar({
         <ScrapMark className="h-6 w-6" />
       </Link>
       <div className="flex min-w-0 flex-1 items-center gap-1">{left}</div>
-      <div className="flex items-center rounded-full bg-muted p-0.5 text-[13px]">
+      {!settings.pages_only && <div className="flex items-center rounded-full bg-muted p-0.5 text-[13px]">
         {(["note", "page"] as const).map((k) => (
           <button
             key={k}
@@ -41,7 +41,7 @@ export function TopBar({
             {k === "note" ? "Notes" : "Pages"}
           </button>
         ))}
-      </div>
+      </div>}
       <Link to="/" aria-label="Home" className="flex h-9 w-9 items-center justify-center rounded-full text-brand hover:bg-brand-soft">
         <Home className="h-[18px] w-[18px]" />
       </Link>

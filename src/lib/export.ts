@@ -149,3 +149,23 @@ export async function exportPng(doc: ScrapDocument, element: HTMLElement) {
   const res = await fetch(dataUrl);
   download(await res.blob(), `${safeName(doc)}.png`);
 }
+
+export async function exportPdf(doc: ScrapDocument, element: HTMLElement) {
+  const [{ toCanvas }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
+  const canvas = await toCanvas(element, { pixelRatio: 2, backgroundColor: "#ffffff", style: { padding: "0" } });
+  const pdf = new jsPDF({ unit: "pt", format: "a4" });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 36;
+  const w = pageW - margin * 2;
+  const sliceH = Math.floor((canvas.width * (pageH - margin * 2)) / w);
+  for (let y = 0, i = 0; y < canvas.height; y += sliceH, i++) {
+    const part = document.createElement("canvas");
+    part.width = canvas.width;
+    part.height = Math.min(sliceH, canvas.height - y);
+    part.getContext("2d")!.drawImage(canvas, 0, -y);
+    if (i > 0) pdf.addPage();
+    pdf.addImage(part.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, w, (part.height * w) / canvas.width);
+  }
+  pdf.save(`${safeName(doc)}.pdf`);
+}

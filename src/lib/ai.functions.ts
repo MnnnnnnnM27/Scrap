@@ -137,3 +137,25 @@ export const generateImage = createServerFn({ method: "POST" })
       return { error: aiError(e) };
     }
   });
+
+/** Writes text for the document at the cursor (used by /ai). Returns Markdown. */
+export const writeForDoc = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => PromptInput.parse(input))
+  .handler(async ({ data }) => {
+    const key = process.env['LOVABLE_API_KEY'];
+    if (!key) return { markdown: "", error: "AI is not configured." };
+    const { createLovableAiGatewayProvider, GEMINI_MODEL } = await import("./ai-gateway.server");
+    const { generateText } = await import("ai");
+    try {
+      const { text } = await generateText({
+        model: createLovableAiGatewayProvider(key)(GEMINI_MODEL),
+        system:
+          "You write directly into the user's document. Output ONLY the content to insert, in Markdown " +
+          "(headings, lists, tables allowed). No preamble, no explanation, no quotes. Be concise.",
+        prompt: (data.context ? `Document so far:\n${data.context}\n\n` : "") + `Request: ${data.prompt}`,
+      });
+      return { markdown: text.trim() };
+    } catch (e) {
+      return { markdown: "", error: aiError(e) };
+    }
+  });

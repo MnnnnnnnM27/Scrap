@@ -3,6 +3,7 @@ import { DefaultChatTransport } from "ai";
 import { ArrowUp, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { saveChat } from "@/lib/chat-history";
 
 function friendlyError(e: Error) {
   const m = e.message.toLowerCase();
@@ -38,6 +39,10 @@ export function AskPill({
       void addToolOutput({ tool: toolCall.toolName as never, toolCallId: toolCall.toolCallId, output: out as never });
     },
   });
+  const [chatId] = useState(() => crypto.randomUUID());
+  useEffect(() => {
+    if (status === "ready") saveChat(chatId, "doc", messages);
+  }, [chatId, messages, status]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
@@ -64,12 +69,11 @@ export function AskPill({
       role="dialog"
       aria-label="Ask Gemini"
       className={cn(
-        "animate-pill-in fixed top-16 right-4 z-50 w-[min(360px,calc(100vw-32px))] overflow-hidden border border-border bg-popover text-popover-foreground shadow-lift transition-[border-radius] duration-300",
-        expanded ? "rounded-3xl" : "rounded-full",
+        "animate-pill-in fixed top-16 right-4 z-50 w-[min(360px,calc(100vw-32px))] overflow-hidden border border-border bg-popover text-popover-foreground shadow-lift rounded-3xl",
       )}
     >
       {expanded && (
-        <div ref={scrollRef} className="max-h-[50vh] space-y-3 overflow-y-auto px-4 pt-4 pb-2">
+        <div ref={scrollRef} className="animate-pill-in max-h-[50vh] space-y-3 overflow-y-auto px-4 pt-4 pb-2">
           {messages.map((m) => (
             <div key={m.id} className={m.role === "user" ? "flex justify-end" : ""}>
               <div
