@@ -7,7 +7,7 @@ import { Download, Link2, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AskPill } from "@/components/scrap/AskPill";
-import { SlashMenu, type SlashState } from "@/components/scrap/SlashMenu";
+import { SlashMenu, type SlashState, type StartTask } from "@/components/scrap/SlashMenu";
 import { applyDocTool } from "@/lib/doc-actions";
 import { Printer } from "lucide-react";
 import { Toolbar } from "@/components/scrap/Toolbar";
@@ -28,7 +28,8 @@ import {
   trashDocument,
 } from "@/lib/documents";
 import { buildExtensions } from "@/lib/editor-extensions";
-import { exportDocx, exportMarkdown, exportMnml, exportPng } from "@/lib/export";
+import { exportDocx, exportMarkdown, exportMnml, exportPdf, exportPng } from "@/lib/export";
+import { DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { useSettings } from "@/lib/settings";
 import { CANVAS_WIDTHS, type DocKind, type ScrapDocument } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
@@ -53,10 +54,31 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   const queryClient = useQueryClient();
   const { settings } = useSettings();
   const [title, setTitle] = useState(doc.title);
+  const titleRef = useRef(title);
+  titleRef.current = title;
   const [askOpen, setAskOpen] = useState(false);
   const [slash, setSlash] = useState<SlashState | null>(null);
   const slashKeyRef = useRef<((e: KeyboardEvent) => boolean) | null>(null);
   const [ghost, setGhost] = useState("");
+  const [tasks, setTasks] = useState<{ id: string; label: string }[]>([]);
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null);
+  const startTask: StartTask = (label, job) => {
+    const e = editorRef.current;
+    if (!e) return;
+    const id = crypto.randomUUID();
+    let pos = e.state.selection.from;
+    const onTr = ({ transaction }: { transaction: { mapping: { map: (p: number) => number } } }) => { pos = transaction.mapping.map(pos); };
+    e.on("transaction", onTr);
+    setTasks((t) => [...t, { id, label }]);
+    job()
+      .then((r) => {
+        const at = Math.min(pos, e.state.doc.content.size);
+        if (r.html) e.chain().insertContentAt(at, r.html).run();
+        else if (r.image) e.chain().insertContentAt(at, { type: "image", attrs: r.image }).run();
+      })
+      .catch((err: unknown) => toast.error(err instanceof Error ? err.message : "Gemini couldn't make that."))
+      .finally(() => { e.off("transaction", onTr); setTasks((t) => t.filter((x) => x.id !== id)); });
+  };
   const [counts, setCounts] = useState({ words: 0, chars: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
   const pending = useRef<{ title?: string; content?: Json; plain_text?: string }>({});
@@ -93,8 +115,11 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   const track = (e: NonNullable<ReturnType<typeof useEditor>>) => {
     const { $from, empty } = e.state.selection;
     if (settingsRef.current.typeliner && e.isFocused) {
-      const c = e.view.coordsAtPos($from.pos);
-      window.scrollBy({ top: c.top - window.innerHeight / 2, behavior: "smooth" });
+      requestAnimationFrame(() => {
+        const c = e.view.coordsAtPos(e.state.selection.from);
+        const d = c.top - window.innerHeight / 2;
+        if (Math.abs(d) > 4) window.scrollBy({ top: d, behavior: "auto" });
+      });
     }
     if (!settingsRef.current.slash_commands || !empty) return setSlash(null);
     const before = $from.parent.textBetween(0, $from.parentOffset, undefined, "\ufffc");
@@ -150,6 +175,17 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     },
   });
 
+  editorRef.current = editor;
+  useEffect(() => {
+    const h = (ev: KeyboardEvent) => {
+      if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === "p" && editorRef.current) {
+        ev.preventDefault();
+        printDocument(titleRef.current, editorRef.current.getHTML());
+      }
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
   useEffect(() => {
     if (!editor) return;
     const text = editor.getText();
@@ -202,17 +238,21 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Sharing</DropdownMenuLabel>
           <DropdownMenuItem onClick={share}><Link2 className="mr-2 h-4 w-4" />Copy view-only link</DropdownMenuItem>
           <DropdownMenuItem onClick={() => revokeShareLinks(doc.id).then(() => toast.success("Links turned off"))}>
             <X className="mr-2 h-4 w-4" />Turn off shared links
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Files</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => exportMarkdown(current())}>Markdown (.md)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => exportMnml(current())}>Minimal Notes (.mnml)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => void exportDocx(current())}>Word (.docx)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => canvasRef.current && void exportPng(current(), canvasRef.current)}>Image (.png)</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => canvasRef.current && void exportPdf(current(), canvasRef.current)}>PDF (.pdf)</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => editor && printDocument(title, editor.getHTML())}><Printer className="mr-2 h-4 w-4" />Print / Save as PDF</DropdownMenuItem>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => editor && printDocument(title, editor.getHTML())}><Printer className="mr-2 h-4 w-4" />Print</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <button
@@ -236,11 +276,11 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       {editor && <div className="no-print"><Toolbar editor={editor} kind={kind} /></div>}
       <main
         className={cn(
-          "px-4 pt-24 pb-32 sm:px-10",
+          "px-4 pt-24 sm:px-10", settings.typeliner ? "pb-[50vh]" : "pb-32",
           settings.toolbar_side === "left" ? "pl-16 sm:pl-24" : "pr-16 sm:pr-24",
         )}
       >
-        <div ref={canvasRef} className={cn("canvas-surface mx-auto min-h-[70vh] rounded-3xl px-6 py-10 sm:px-12", widthClass)}>
+        <div ref={canvasRef} data-doc-font={settings.font} className={cn("canvas-surface mx-auto min-h-[70vh] rounded-3xl px-6 py-10 sm:px-12", widthClass)}>
           <input
             value={title}
             onChange={(e) => {
@@ -276,7 +316,18 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           keyRef={slashKeyRef}
           onClose={() => setSlash(null)}
           onAsk={() => { setSlash(null); setAskOpen(true); }}
+          startTask={startTask}
         />
+      )}
+
+      {tasks.length > 0 && (
+        <div className="no-print fixed top-16 right-4 z-40 flex flex-row-reverse gap-2">
+          {tasks.map((t) => (
+            <span key={t.id} className="animate-pill-in flex items-center gap-1.5 rounded-full border border-border bg-popover px-3 py-1.5 text-[12px] shadow-lift">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />{t.label}
+            </span>
+          ))}
+        </div>
       )}
 
       {askOpen && (

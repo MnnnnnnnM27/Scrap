@@ -14,7 +14,7 @@ export function ChatThread({
   initialMessages,
 }: {
   chatId?: string;
-  initialMessages?: UIMessage[];
+  initialMessages?: UIMessage[] | undefined;
   getBody?: () => Record<string, unknown>;
   placeholder: string;
   quickActions?: string[];
@@ -30,7 +30,7 @@ export function ChatThread({
       }),
     [],
   );
-  const { messages, sendMessage, status, error } = useChat({ transport, id: chatId, messages: initialMessages });
+  const { messages, sendMessage, status, error } = useChat({ transport, ...(chatId ? { id: chatId } : {}), ...(initialMessages ? { messages: initialMessages } : {}) });
   useEffect(() => {
     if (chatId && status === "ready") saveChat(chatId, "research", messages);
   }, [chatId, messages, status]);
