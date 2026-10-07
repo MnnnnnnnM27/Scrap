@@ -2,13 +2,19 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { ArrowUp } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { UIMessage } from "ai";
+import { saveChat } from "@/lib/chat-history";
 
 export function ChatThread({
   getBody,
   placeholder,
   quickActions,
   empty,
+  chatId,
+  initialMessages,
 }: {
+  chatId?: string;
+  initialMessages?: UIMessage[];
   getBody?: () => Record<string, unknown>;
   placeholder: string;
   quickActions?: string[];
@@ -24,7 +30,10 @@ export function ChatThread({
       }),
     [],
   );
-  const { messages, sendMessage, status, error } = useChat({ transport });
+  const { messages, sendMessage, status, error } = useChat({ transport, id: chatId, messages: initialMessages });
+  useEffect(() => {
+    if (chatId && status === "ready") saveChat(chatId, "research", messages);
+  }, [chatId, messages, status]);
   const [input, setInput] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
