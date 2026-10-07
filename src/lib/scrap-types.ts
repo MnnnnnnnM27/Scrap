@@ -37,6 +37,7 @@ export type UserSettings = {
   spellcheck: boolean;
   slash_commands: boolean;
   confirm_trash: boolean;
+  pages_only: boolean;
 };
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -53,6 +54,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   spellcheck: true,
   slash_commands: true,
   confirm_trash: false,
+  pages_only: false,
 };
 
 export const ACCENT_THEMES: { key: AccentTheme; label: string }[] = [
