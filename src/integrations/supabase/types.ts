@@ -153,6 +153,7 @@ export type Database = {
           confirm_trash: boolean
           font: string
           ghost_autocomplete: boolean
+          pages_only: boolean
           show_ask_gemini: boolean
           show_word_count: boolean
           slash_commands: boolean
@@ -170,6 +171,7 @@ export type Database = {
           confirm_trash?: boolean
           font?: string
           ghost_autocomplete?: boolean
+          pages_only?: boolean
           show_ask_gemini?: boolean
           show_word_count?: boolean
           slash_commands?: boolean
@@ -187,6 +189,7 @@ export type Database = {
           confirm_trash?: boolean
           font?: string
           ghost_autocomplete?: boolean
+          pages_only?: boolean
           show_ask_gemini?: boolean
           show_word_count?: boolean
           slash_commands?: boolean
