@@ -14,8 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      document_collaborators: {
+        Row: {
+          document_id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          document_id: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          document_id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_collaborators_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
+          collab_token: string | null
           content: Json
           created_at: string
           deleted_at: string | null
@@ -28,6 +55,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          collab_token?: string | null
           content?: Json
           created_at?: string
           deleted_at?: string | null
@@ -40,6 +68,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          collab_token?: string | null
           content?: Json
           created_at?: string
           deleted_at?: string | null
@@ -149,12 +178,16 @@ export type Database = {
           accent_theme: string
           canvas_width: string
           card_previews: boolean
+          collab_color: string
           color_mode: string
           confirm_trash: boolean
           font: string
           ghost_autocomplete: boolean
           pages_only: boolean
           show_ask_gemini: boolean
+          show_cursors: boolean
+          show_names: boolean
+          show_whats_new: boolean
           show_word_count: boolean
           slash_commands: boolean
           spellcheck: boolean
@@ -162,17 +195,22 @@ export type Database = {
           typeliner: boolean
           updated_at: string
           user_id: string
+          username: string
         }
         Insert: {
           accent_theme?: string
           canvas_width?: string
           card_previews?: boolean
+          collab_color?: string
           color_mode?: string
           confirm_trash?: boolean
           font?: string
           ghost_autocomplete?: boolean
           pages_only?: boolean
           show_ask_gemini?: boolean
+          show_cursors?: boolean
+          show_names?: boolean
+          show_whats_new?: boolean
           show_word_count?: boolean
           slash_commands?: boolean
           spellcheck?: boolean
@@ -180,17 +218,22 @@ export type Database = {
           typeliner?: boolean
           updated_at?: string
           user_id: string
+          username?: string
         }
         Update: {
           accent_theme?: string
           canvas_width?: string
           card_previews?: boolean
+          collab_color?: string
           color_mode?: string
           confirm_trash?: boolean
           font?: string
           ghost_autocomplete?: boolean
           pages_only?: boolean
           show_ask_gemini?: boolean
+          show_cursors?: boolean
+          show_names?: boolean
+          show_whats_new?: boolean
           show_word_count?: boolean
           slash_commands?: boolean
           spellcheck?: boolean
@@ -198,6 +241,7 @@ export type Database = {
           typeliner?: boolean
           updated_at?: string
           user_id?: string
+          username?: string
         }
         Relationships: []
       }
@@ -206,6 +250,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      doc_people: {
+        Args: { _docs: string[] }
+        Returns: {
+          color: string
+          document_id: string
+          is_owner: boolean
+          user_id: string
+          username: string
+        }[]
+      }
       get_shared_document: {
         Args: { _token: string }
         Returns: {
@@ -215,6 +269,12 @@ export type Database = {
           updated_at: string
         }[]
       }
+      is_doc_collaborator: {
+        Args: { _doc: string; _uid: string }
+        Returns: boolean
+      }
+      is_doc_owner: { Args: { _doc: string; _uid: string }; Returns: boolean }
+      join_collab: { Args: { _token: string }; Returns: string }
       purge_expired_trash: { Args: never; Returns: undefined }
     }
     Enums: {
