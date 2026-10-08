@@ -16,6 +16,7 @@ import { Route as ResearchRouteImport } from './routes/research'
 import { Route as TrashRouteImport } from './routes/trash'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as NoteIdRouteImport } from './routes/note.$id'
 import { Route as PageIdRouteImport } from './routes/page.$id'
 import { Route as STokenRouteImport } from './routes/s.$token'
@@ -57,6 +58,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NoteIdRoute = NoteIdRouteImport.update({
   id: '/note/$id',
   path: '/note/$id',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/trash': typeof TrashRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$token': typeof JoinTokenRoute
   '/note/$id': typeof NoteIdRoute
   '/page/$id': typeof PageIdRoute
   '/s/$token': typeof STokenRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/trash': typeof TrashRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$token': typeof JoinTokenRoute
   '/note/$id': typeof NoteIdRoute
   '/page/$id': typeof PageIdRoute
   '/s/$token': typeof STokenRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/trash': typeof TrashRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/join/$token': typeof JoinTokenRoute
   '/note/$id': typeof NoteIdRoute
   '/page/$id': typeof PageIdRoute
   '/s/$token': typeof STokenRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/trash'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/join/$token'
     | '/note/$id'
     | '/page/$id'
     | '/s/$token'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/trash'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/join/$token'
     | '/note/$id'
     | '/page/$id'
     | '/s/$token'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/trash'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/join/$token'
     | '/note/$id'
     | '/page/$id'
     | '/s/$token'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   TrashRoute: typeof TrashRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
+  JoinTokenRoute: typeof JoinTokenRoute
   NoteIdRoute: typeof NoteIdRoute
   PageIdRoute: typeof PageIdRoute
   STokenRoute: typeof STokenRoute
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/note/$id': {
       id: '/note/$id'
       path: '/note/$id'
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
+  JoinTokenRoute: JoinTokenRoute,
   NoteIdRoute: NoteIdRoute,
   PageIdRoute: PageIdRoute,
   STokenRoute: STokenRoute,
