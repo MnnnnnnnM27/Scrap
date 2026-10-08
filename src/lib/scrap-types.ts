@@ -11,6 +11,7 @@ export type ScrapDocument = {
   updated_at: string;
   deleted_at: string | null;
   folder_id?: string | null;
+  collab_token?: string | null;
 };
 
 export type FolderColor = "graphite" | "marine" | "emerald" | "amber" | "coral" | "plum";
@@ -38,6 +39,11 @@ export type UserSettings = {
   slash_commands: boolean;
   confirm_trash: boolean;
   pages_only: boolean;
+  username: string;
+  collab_color: string;
+  show_cursors: boolean;
+  show_names: boolean;
+  show_whats_new: boolean;
 };
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -55,6 +61,11 @@ export const DEFAULT_SETTINGS: UserSettings = {
   slash_commands: true,
   confirm_trash: false,
   pages_only: false,
+  username: "",
+  collab_color: "#3b82f6",
+  show_cursors: true,
+  show_names: true,
+  show_whats_new: true,
 };
 
 export const ACCENT_THEMES: { key: AccentTheme; label: string }[] = [
@@ -74,7 +85,7 @@ export const CANVAS_WIDTHS: { key: CanvasWidth; label: string; className: string
 
 export const DOC_FONTS: { key: DocFont; label: string; sample: string }[] = [
   { key: "default", label: "Default", sample: "-apple-system, system-ui, sans-serif" },
-  { key: "switzer", label: "Switzer", sample: "Switzer, sans-serif" },
+  { key: "switzer", label: "Outfit", sample: "Outfit, sans-serif" },
   { key: "google-sans", label: "Google Sans", sample: "'Google Sans', sans-serif" },
   { key: "literata", label: "Literata", sample: "Literata, serif" },
   { key: "cursive", label: "Cursive", sample: "Caveat, cursive" },
@@ -82,7 +93,7 @@ export const DOC_FONTS: { key: DocFont; label: string; sample: string }[] = [
 
 export const PAGE_FONT_FAMILIES = [
   { label: "Default", value: "" },
-  { label: "Switzer", value: "Switzer, sans-serif" },
+  { label: "Outfit", value: "Outfit, sans-serif" },
   { label: "Google Sans", value: "'Google Sans', sans-serif" },
   { label: "Literata", value: "Literata, serif" },
   { label: "Cursive", value: "Caveat, cursive" },

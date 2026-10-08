@@ -119,3 +119,40 @@ export async function moveToFolder(docId: string, folderId: string | null): Prom
   const { error } = await supabase.from("documents").update({ folder_id: folderId }).eq("id", docId);
   if (error) throw error;
 }
+
+export async function getOrCreateCollabLink(documentId: string): Promise<string> {
+  const { data } = await supabase.from("documents").select("collab_token").eq("id", documentId).maybeSingle();
+  let token = (data?.collab_token as string | null) ?? null;
+  if (!token) {
+    token = crypto.randomUUID();
+    const { error } = await supabase.from("documents").update({ collab_token: token }).eq("id", documentId);
+    if (error) throw error;
+  }
+  return `${window.location.origin}/join/${token}`;
+}
+
+export async function joinCollab(token: string): Promise<string> {
+  const { data, error } = await supabase.rpc("join_collab", { _token: token });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function leaveCollab(documentId: string): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) throw new Error("Not signed in");
+  const { error } = await supabase
+    .from("document_collaborators")
+    .delete()
+    .eq("document_id", documentId)
+    .eq("user_id", auth.user.id);
+  if (error) throw error;
+}
+
+export type DocPerson = { document_id: string; user_id: string; username: string; color: string; is_owner: boolean };
+
+export async function docPeople(ids: string[]): Promise<DocPerson[]> {
+  if (!ids.length) return [];
+  const { data, error } = await supabase.rpc("doc_people", { _docs: ids });
+  if (error) throw error;
+  return (data ?? []) as DocPerson[];
+}

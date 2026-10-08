@@ -230,7 +230,7 @@
     ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
 }
 [data-doc-font="switzer"] {
-  --font-doc: "Switzer", ui-sans-serif, sans-serif;
+  --font-doc: "Outfit", ui-sans-serif, sans-serif;
 }
 [data-doc-font="google-sans"] {
   --font-doc: "Google Sans", ui-sans-serif, sans-serif;
@@ -495,4 +495,24 @@
   .print-shell {
     padding: 0 !important;
   }
+}
+
+/* Divider before H1/H2 (not at the top) */
+.scrap-editor .ProseMirror > :not(:first-child):is(h1, h2) {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.9em;
+  margin-top: 1.4em;
+}
+
+@keyframes bubble-pop {
+  0% { transform: scale(1); opacity: 1; }
+  40% { transform: scale(1.25); opacity: 0.9; }
+  100% { transform: scale(0); opacity: 0; }
+}
+.animate-bubble-pop { animation: bubble-pop 0.35s ease-out forwards; }
+
+.collab-caret { position: absolute; width: 2px; pointer-events: none; transition: top 0.12s, left 0.12s; }
+.collab-caret span {
+  position: absolute; bottom: 100%; left: -1px; white-space: nowrap;
+  font: 500 10px/1.4 var(--font-ui); color: #fff; padding: 1px 5px; border-radius: 6px 6px 6px 0;
 }
