@@ -1,5 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Check, Folder, FolderMinus, MoreHorizontal, Trash2 } from "lucide-react";
+import { Check, Folder, FolderMinus, LogOut, MoreHorizontal, Trash2, Users } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getOrCreateCollabLink, leaveCollab } from "@/lib/documents";
+import { useAuth } from "@/lib/use-auth";
+import { useCollabMap } from "@/lib/use-collab";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +43,34 @@ export function DocumentCard({
   folders?: ScrapFolder[] | undefined;
   onMove?: ((docId: string, folderId: string | null) => void) | undefined;
 }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const people = useCollabMap().get(doc.id) ?? [];
+  const isOwner = !user || doc.user_id === user.id;
+  const others = people.filter((p) => p.user_id !== user?.id);
+  const colors = others.map((p) => p.color);
+  const badgeStyle =
+    colors.length >= 2
+      ? { backgroundImage: `linear-gradient(135deg, ${colors.join(", ")})`, WebkitBackgroundClip: "text", color: "transparent" }
+      : { color: colors[0] };
+  const collaborate = async () => {
+    try {
+      const url = await getOrCreateCollabLink(doc.id);
+      await navigator.clipboard.writeText(url).catch(() => {});
+      toast.success("Collaboration link copied", { description: "Anyone with it can edit this page." });
+    } catch {
+      toast.error("Couldn't create a link.");
+    }
+  };
+  const leave = async () => {
+    try {
+      await leaveCollab(doc.id);
+      void qc.invalidateQueries({ queryKey: ["documents"] });
+      toast.success("Left the page");
+    } catch {
+      toast.error("Couldn't leave that page.");
+    }
+  };
   return (
     <div className="group relative">
       <Link
@@ -63,6 +96,15 @@ export function DocumentCard({
           )}
         >
           {relativeDate(doc.updated_at)}
+          {others.length > 0 && (
+            <span
+              title={`Shared with ${others.map((p) => p.username || "someone").join(", ")}`}
+              className="ml-2.5 inline-block text-[12px] font-bold normal-case"
+              style={badgeStyle}
+            >
+              C
+            </span>
+          )}
         </p>
       </Link>
 
@@ -80,7 +122,13 @@ export function DocumentCard({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          {doc.kind === "page" && folders && onMove && (
+          {doc.kind === "page" && isOwner && (
+            <DropdownMenuItem onSelect={() => void collaborate()}>
+              <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+              Collaborate
+            </DropdownMenuItem>
+          )}
+          {doc.kind === "page" && isOwner && folders && onMove && (
             <>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
@@ -109,10 +157,17 @@ export function DocumentCard({
               <DropdownMenuSeparator />
             </>
           )}
-          <DropdownMenuItem onSelect={() => onDelete(doc.id)}>
-            <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-            Move to Trash
-          </DropdownMenuItem>
+          {isOwner ? (
+            <DropdownMenuItem onSelect={() => onDelete(doc.id)}>
+              <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+              Move to Trash
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onSelect={() => void leave()}>
+              <LogOut className="mr-2 h-4 w-4 text-destructive" />
+              Leave page
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
