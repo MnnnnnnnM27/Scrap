@@ -204,6 +204,37 @@ export function SettingsBubble() {
               <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
                 <Toggle label="Card previews" hint="Off shows slim title-only pills." checked={settings.card_previews} onChange={(v) => set({ card_previews: v })} />
                 <Toggle label="Pages only" hint="Hides Notes. Home becomes Pages." checked={settings.pages_only} onChange={(v) => set({ pages_only: v })} />
+                <Toggle label="What's new bubble" hint="Once after each update." checked={settings.show_whats_new} onChange={(v) => set({ show_whats_new: v })} />
+              </div>
+            </Group>
+
+            <Group title="Collaboration">
+              <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                <div className="flex min-h-11 items-center justify-between gap-4 px-3.5 py-2.5">
+                  <p className="text-[15px]">Username</p>
+                  <input
+                    defaultValue={settings.username}
+                    key={settings.username}
+                    maxLength={24}
+                    placeholder="Your name"
+                    onBlur={(e) => set({ username: e.target.value.trim() })}
+                    className="w-36 rounded-lg bg-muted px-2.5 py-1 text-right text-sm outline-none"
+                  />
+                </div>
+                <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4 px-3.5 py-2.5">
+                  <span>
+                    <span className="block text-[15px]">Your colour</span>
+                    <span className="block text-xs text-muted-foreground">Your C and cursor.</span>
+                  </span>
+                  <input
+                    type="color"
+                    value={settings.collab_color}
+                    onChange={(e) => set({ collab_color: e.target.value })}
+                    className="h-7 w-7 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                  />
+                </label>
+                <Toggle label="Live cursors" hint="See where others type." checked={settings.show_cursors} onChange={(v) => set({ show_cursors: v })} />
+                <Toggle label="Names on cursors" checked={settings.show_names} onChange={(v) => set({ show_names: v })} />
               </div>
             </Group>
 
