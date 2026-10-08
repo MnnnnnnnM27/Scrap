@@ -210,7 +210,7 @@ function Home() {
                 id="pages"
                 title="Pages"
                 icon={<FileText className="h-4 w-4" />}
-                docs={view === "pages" && !search.trim() ? filtered.pages.filter((d) => !d.folder_id) : filtered.pages}
+                docs={view === "pages" && !search.trim() ? filtered.pages.filter((d) => !d.folder_id || !folders.some((f) => f.id === d.folder_id)) : filtered.pages}
                 emptyLabel={view === "pages" ? "No loose pages." : "No pages yet."}
                 onDelete={(id) => remove.mutate(id)}
               />

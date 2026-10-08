@@ -14,7 +14,8 @@ import type { DocKind } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
 
 export type TaskResult = { html?: string; image?: { src: string; alt: string } };
-export type StartTask = (label: string, job: () => Promise<TaskResult>) => void;
+export type TaskKind = "aitable" | "chart" | "aiimage" | "ai";
+export type StartTask = (label: string, job: () => Promise<TaskResult>, kind?: TaskKind) => void;
 
 export type SlashState = { query: string; from: number; to: number; top: number; left: number };
 
@@ -44,7 +45,7 @@ function items(kind: DocKind, onAsk: () => void, onImage: () => void): Item[] {
     { key: "table", label: "Table", hint: "3 × 3 grid", icon: Table, run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
     { key: "picture", label: "Picture", hint: "Upload image", icon: ImageIcon, run: () => onImage() },
     { key: "aitable", label: "AI table", hint: "Describe it", icon: Table, ai: "e.g. weekly workout plan" },
-    { key: "chart", label: "Chart", hint: "Bar, line, pie", icon: BarChart3, ai: "e.g. sales by month 2025" },
+    { key: "chart", label: "AI chart", hint: "Describe it", icon: BarChart3, ai: "e.g. sales by month 2025" },
     { key: "aiimage", label: "AI image", hint: "Generate picture", icon: Wand2, ai: "e.g. a foggy pine forest" },
     { key: "ai", label: "Ask Gemini", hint: "Write here", icon: Sparkles, ai: "e.g. intro paragraph about bees" },
     { key: "pdf", label: "Print", hint: "Just the text", icon: Printer, run: (e) => printDocument("", e.getHTML()) },
@@ -117,7 +118,7 @@ export function SlashMenu({
       const r = await image({ data: { prompt: p } });
       if (r.error || !r.dataUrl) throw new Error(r.error ?? "No image");
       return { image: { src: r.dataUrl, alt: p } };
-    });
+    }, k as TaskKind);
   };
 
   keyRef.current = (e) => {

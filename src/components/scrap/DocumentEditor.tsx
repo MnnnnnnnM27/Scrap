@@ -3,11 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { Download, Link2, Trash2, X } from "lucide-react";
+import { BarChart3, Download, Link2, Sparkles, Table, Trash2, Wand2, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/use-auth";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AskPill } from "@/components/scrap/AskPill";
-import { SlashMenu, type SlashState, type StartTask } from "@/components/scrap/SlashMenu";
+import { SlashMenu, type SlashState, type StartTask, type TaskKind } from "@/components/scrap/SlashMenu";
 import { applyDocTool } from "@/lib/doc-actions";
 import { Printer } from "lucide-react";
 import { Toolbar } from "@/components/scrap/Toolbar";
@@ -60,16 +62,17 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   const [slash, setSlash] = useState<SlashState | null>(null);
   const slashKeyRef = useRef<((e: KeyboardEvent) => boolean) | null>(null);
   const [ghost, setGhost] = useState("");
-  const [tasks, setTasks] = useState<{ id: string; label: string }[]>([]);
+  const [tasks, setTasks] = useState<{ id: string; label: string; kind: TaskKind; done?: boolean }[]>([]);
+  const [openTask, setOpenTask] = useState<string | null>(null);
   const editorRef = useRef<ReturnType<typeof useEditor>>(null);
-  const startTask: StartTask = (label, job) => {
+  const startTask: StartTask = (label, job, taskKind = "ai") => {
     const e = editorRef.current;
     if (!e) return;
     const id = crypto.randomUUID();
     let pos = e.state.selection.from;
     const onTr = ({ transaction }: { transaction: { mapping: { map: (p: number) => number } } }) => { pos = transaction.mapping.map(pos); };
     e.on("transaction", onTr);
-    setTasks((t) => [...t, { id, label }]);
+    setTasks((t) => [...t, { id, label, kind: taskKind }]);
     job()
       .then((r) => {
         const at = Math.min(pos, e.state.doc.content.size);
@@ -77,9 +80,15 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
         else if (r.image) e.chain().insertContentAt(at, { type: "image", attrs: r.image }).run();
       })
       .catch((err: unknown) => toast.error(err instanceof Error ? err.message : "Gemini couldn't make that."))
-      .finally(() => { e.off("transaction", onTr); setTasks((t) => t.filter((x) => x.id !== id)); });
+      .finally(() => {
+        e.off("transaction", onTr);
+        setTasks((t) => t.map((x) => (x.id === id ? { ...x, done: true } : x)));
+        setTimeout(() => setTasks((t) => t.filter((x) => x.id !== id)), 350);
+      });
   };
   const [counts, setCounts] = useState({ words: 0, chars: 0 });
+  const remoteApplying = useRef(false);
+  const broadcastRef = useRef<((json: unknown) => void) | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const pending = useRef<{ title?: string; content?: Json; plain_text?: string }>({});
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -152,6 +161,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     },
     onSelectionUpdate: ({ editor: e }) => track(e),
     onUpdate: ({ editor: e }) => {
+      if (!remoteApplying.current) broadcastRef.current?.(e.getJSON());
       queue({ content: e.getJSON() as Json, plain_text: e.getText() });
       track(e);
       const text = e.getText();
@@ -176,6 +186,79 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   });
 
   editorRef.current = editor;
+
+  // spellcheck lives on the editable element itself
+  useEffect(() => {
+    if (!editor) return;
+    editor.view.dom.setAttribute("spellcheck", String(settings.spellcheck));
+    editor.view.dom.setAttribute("autocorrect", settings.spellcheck ? "on" : "off");
+  }, [editor, settings.spellcheck]);
+
+  // ---- live collaboration (pages) ----
+  const { user } = useAuth();
+  const [peers, setPeers] = useState<Peer[]>([]);
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!editor || !user || kind !== "page") return;
+    const channel = supabase.channel(`doc:${doc.id}`, { config: { presence: { key: user.id }, broadcast: { self: false } } });
+    const me = () => ({
+      name: settingsRef.current.username || user.email?.split("@")[0] || "Someone",
+      color: settingsRef.current.collab_color,
+      pos: editor.state.selection.from,
+    });
+    let last = 0;
+    let pendingJson: unknown = null;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const send = () => {
+      last = Date.now();
+      void channel.send({ type: "broadcast", event: "content", payload: { json: pendingJson } });
+    };
+    broadcastRef.current = (json) => {
+      pendingJson = json;
+      clearTimeout(t);
+      if (Date.now() - last > 200) send();
+      else t = setTimeout(send, 200);
+    };
+    channel
+      .on("broadcast", { event: "content" }, ({ payload }) => {
+        const sel = editor.state.selection.from;
+        remoteApplying.current = true;
+        editor.commands.setContent(payload.json as object, { emitUpdate: false });
+        remoteApplying.current = false;
+        editor.commands.setTextSelection(Math.min(sel, editor.state.doc.content.size - 1));
+        setTick((n) => n + 1);
+      })
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState<{ name: string; color: string; pos: number }>();
+        setPeers(
+          Object.entries(state)
+            .filter(([k]) => k !== user.id)
+            .map(([k, v]) => ({ id: k, ...v[v.length - 1]! })),
+        );
+      })
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") void channel.track(me());
+      });
+    const onSel = () => void channel.track(me());
+    editor.on("selectionUpdate", onSel);
+    return () => {
+      editor.off("selectionUpdate", onSel);
+      broadcastRef.current = null;
+      clearTimeout(t);
+      void supabase.removeChannel(channel);
+    };
+  }, [editor, user, kind, doc.id]);
+
+  const caretFor = (p: Peer) => {
+    if (!editor || !canvasRef.current) return null;
+    try {
+      const c = editor.view.coordsAtPos(Math.min(p.pos, editor.state.doc.content.size - 1));
+      const r = canvasRef.current.getBoundingClientRect();
+      return { top: c.top - r.top, left: c.left - r.left, height: c.bottom - c.top };
+    } catch {
+      return null;
+    }
+  };
   useEffect(() => {
     const h = (ev: KeyboardEvent) => {
       if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === "p" && editorRef.current) {
@@ -280,7 +363,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           settings.toolbar_side === "left" ? "pl-16 sm:pl-24" : "pr-16 sm:pr-24",
         )}
       >
-        <div ref={canvasRef} data-doc-font={settings.font} className={cn("canvas-surface mx-auto min-h-[70vh] rounded-3xl px-6 py-10 sm:px-12", widthClass)}>
+        <div ref={canvasRef} data-doc-font={settings.font} className={cn("canvas-surface relative mx-auto min-h-[70vh] rounded-3xl px-6 py-10 sm:px-12", widthClass)}>
           <input
             value={title}
             onChange={(e) => {
@@ -293,6 +376,16 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           <div className="scrap-editor" spellCheck={settings.spellcheck}>
             <EditorContent editor={editor} />
           </div>
+          {settings.show_cursors &&
+            peers.map((p) => {
+              const c = caretFor(p);
+              if (!c) return null;
+              return (
+                <div key={p.id} className="collab-caret no-print" style={{ top: c.top, left: c.left, height: c.height, background: p.color }}>
+                  {settings.show_names && <span style={{ background: p.color }}>{p.name}</span>}
+                </div>
+              );
+            })}
           {ghost && (
             <p className="mt-3 text-sm text-muted-foreground">
               <span className="opacity-60">{ghost}</span>
@@ -321,12 +414,27 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       )}
 
       {tasks.length > 0 && (
-        <div className="no-print fixed top-16 right-4 z-40 flex flex-row-reverse gap-2">
-          {tasks.map((t) => (
-            <span key={t.id} className="animate-pill-in flex items-center gap-1.5 rounded-full border border-border bg-popover px-3 py-1.5 text-[12px] shadow-lift">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />{t.label}
-            </span>
-          ))}
+        <div className="no-print fixed top-16 right-4 z-40 flex flex-row-reverse items-start gap-2">
+          {tasks.map((t) => {
+            const Icon = TASK_ICONS[t.kind];
+            const expanded = openTask === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                title={t.label}
+                onClick={() => setOpenTask(expanded ? null : t.id)}
+                className={cn(
+                  "relative flex h-9 items-center gap-2 overflow-hidden rounded-full border border-border bg-card text-brand shadow-lift transition-all duration-300",
+                  expanded ? "px-3.5" : "w-9 justify-center",
+                  t.done ? "animate-bubble-pop" : "animate-pill-in",
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0 animate-pulse" />
+                {expanded && <span className="text-[12px] whitespace-nowrap text-foreground">{t.label}</span>}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -341,3 +449,12 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     </div>
   );
 }
+
+type Peer = { id: string; name: string; color: string; pos: number };
+
+const TASK_ICONS: Record<TaskKind, typeof Sparkles> = {
+  ai: Sparkles,
+  aitable: Table,
+  chart: BarChart3,
+  aiimage: Wand2,
+};
