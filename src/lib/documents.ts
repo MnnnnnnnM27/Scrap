@@ -4,21 +4,74 @@ import type { DocKind, FolderColor, ScrapDocument, ScrapFolder } from "./scrap-t
 
 const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] };
 
+// ---- offline cache: last-known copies + queued saves, kept in this browser ----
+const CACHE = "scrap.offline.docs";
+const QUEUE = "scrap.offline.queue";
+type SavePatch = { title?: string; content?: Json; plain_text?: string };
+const readJSON = <T,>(k: string, d: T): T => {
+  try { return JSON.parse(localStorage.getItem(k) || "null") ?? d; } catch { return d; }
+};
+const writeJSON = (k: string, v: unknown) => {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage full */ }
+};
+function cacheDocs(docs: ScrapDocument[]) {
+  const map = readJSON<Record<string, ScrapDocument>>(CACHE, {});
+  for (const d of docs) map[d.id] = d;
+  writeJSON(CACHE, map);
+}
+const offline = () => typeof navigator !== "undefined" && !navigator.onLine;
+
+export function pendingOfflineSaves() {
+  return Object.keys(readJSON<Record<string, SavePatch>>(QUEUE, {})).length;
+}
+
+export async function syncOfflineSaves(): Promise<number> {
+  const q = readJSON<Record<string, SavePatch>>(QUEUE, {});
+  let n = 0;
+  for (const [id, patch] of Object.entries(q)) {
+    const { error } = await supabase.from("documents").update(patch).eq("id", id);
+    if (error) break;
+    delete q[id];
+    n++;
+    writeJSON(QUEUE, q);
+  }
+  return n;
+}
+
 export async function listDocuments(trashed = false): Promise<ScrapDocument[]> {
-  let query = supabase.from("documents").select("*").order("updated_at", { ascending: false });
-  query = trashed ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data ?? []) as ScrapDocument[];
+  try {
+    let query = supabase.from("documents").select("*").order("updated_at", { ascending: false });
+    query = trashed ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
+    const { data, error } = await query;
+    if (error) throw error;
+    if (!trashed) cacheDocs((data ?? []) as ScrapDocument[]);
+    return (data ?? []) as ScrapDocument[];
+  } catch (e) {
+    if (trashed || !offline()) throw e;
+    return Object.values(readJSON<Record<string, ScrapDocument>>(CACHE, {}))
+      .filter((d) => !d.deleted_at)
+      .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  }
 }
 
 export async function getDocument(id: string): Promise<ScrapDocument | null> {
-  const { data, error } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
-  if (error) throw error;
-  return (data as ScrapDocument) ?? null;
+  try {
+    const { data, error } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    if (data) cacheDocs([data as ScrapDocument]);
+    return (data as ScrapDocument) ?? null;
+  } catch (e) {
+    const cached = readJSON<Record<string, ScrapDocument>>(CACHE, {})[id];
+    if (!cached) throw e;
+    const patch = readJSON<Record<string, SavePatch>>(QUEUE, {})[id];
+    return { ...cached, ...(patch as Partial<ScrapDocument>) };
+  }
 }
 
-export async function createDocument(kind: DocKind): Promise<ScrapDocument> {
+export async function createDocument(
+  kind: DocKind,
+  init?: { title: string; content: Json; plain_text: string },
+): Promise<ScrapDocument> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error("Not signed in");
   const { data, error } = await supabase
@@ -26,9 +79,9 @@ export async function createDocument(kind: DocKind): Promise<ScrapDocument> {
     .insert({
       user_id: auth.user.id,
       kind,
-      title: "",
-      content: EMPTY_DOC,
-      plain_text: "",
+      title: init?.title ?? "",
+      content: init?.content ?? EMPTY_DOC,
+      plain_text: init?.plain_text ?? "",
     })
     .select("*")
     .single();
@@ -38,10 +91,23 @@ export async function createDocument(kind: DocKind): Promise<ScrapDocument> {
 
 export async function saveDocument(
   id: string,
-  patch: { title?: string; content?: Json; plain_text?: string },
+  patch: SavePatch,
 ): Promise<void> {
-  const { error } = await supabase.from("documents").update(patch).eq("id", id);
-  if (error) throw error;
+  const map = readJSON<Record<string, ScrapDocument>>(CACHE, {});
+  if (map[id]) { map[id] = { ...map[id], ...(patch as Partial<ScrapDocument>), updated_at: new Date().toISOString() }; writeJSON(CACHE, map); }
+  const queueIt = () => {
+    const q = readJSON<Record<string, SavePatch>>(QUEUE, {});
+    q[id] = { ...q[id], ...patch };
+    writeJSON(QUEUE, q);
+  };
+  if (offline()) return queueIt();
+  try {
+    const { error } = await supabase.from("documents").update(patch).eq("id", id);
+    if (error) throw error;
+  } catch (e) {
+    if (e instanceof TypeError || offline()) return queueIt(); // network failure — keep it for later
+    throw e;
+  }
 }
 
 export async function trashDocument(id: string): Promise<void> {

@@ -16,6 +16,7 @@ import { Route as ResearchRouteImport } from './routes/research'
 import { Route as TrashRouteImport } from './routes/trash'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as NoteIdRouteImport } from './routes/note.$id'
 import { Route as PageIdRouteImport } from './routes/page.$id'
@@ -58,6 +59,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
+  id: '/api/transcribe',
+  path: '/api/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
   id: '/join/$token',
   path: '/join/$token',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/trash': typeof TrashRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/join/$token': typeof JoinTokenRoute
   '/note/$id': typeof NoteIdRoute
   '/page/$id': typeof PageIdRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/trash': typeof TrashRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/join/$token': typeof JoinTokenRoute
   '/note/$id': typeof NoteIdRoute
   '/page/$id': typeof PageIdRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/trash': typeof TrashRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/join/$token': typeof JoinTokenRoute
   '/note/$id': typeof NoteIdRoute
   '/page/$id': typeof PageIdRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/trash'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/api/transcribe'
     | '/join/$token'
     | '/note/$id'
     | '/page/$id'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/trash'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/api/transcribe'
     | '/join/$token'
     | '/note/$id'
     | '/page/$id'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/trash'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/api/transcribe'
     | '/join/$token'
     | '/note/$id'
     | '/page/$id'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   TrashRoute: typeof TrashRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiTranscribeRoute: typeof ApiTranscribeRoute
   JoinTokenRoute: typeof JoinTokenRoute
   NoteIdRoute: typeof NoteIdRoute
   PageIdRoute: typeof PageIdRoute
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/transcribe': {
+      id: '/api/transcribe'
+      path: '/api/transcribe'
+      fullPath: '/api/transcribe'
+      preLoaderRoute: typeof ApiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/$token': {
       id: '/join/$token'
       path: '/join/$token'
@@ -285,6 +305,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiTranscribeRoute: ApiTranscribeRoute,
   JoinTokenRoute: JoinTokenRoute,
   NoteIdRoute: NoteIdRoute,
   PageIdRoute: PageIdRoute,
