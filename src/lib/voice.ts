@@ -20,7 +20,7 @@ export async function startDictation(): Promise<Recorder> {
       await done;
       end();
       const mime = rec.mimeType || "audio/webm";
-      const blob = new Blob(chunks, { type: mime.split(";")[0] });
+      const blob = new Blob(chunks, { type: mime.split(";")[0] ?? "audio/webm" });
       if (blob.size < 1000) return "";
       const ext = mime.includes("mp4") ? "m4a" : mime.includes("ogg") ? "ogg" : "webm";
       const form = new FormData();
