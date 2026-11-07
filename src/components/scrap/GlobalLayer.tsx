@@ -13,6 +13,7 @@ import { startDictation, type Recorder } from "@/lib/voice";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
+import { setOfflineAccount } from "@/lib/offline-store";
 
 /** App-wide: file drop overlay, keyboard shortcuts, dictation and offline sync. */
 export function GlobalLayer() {
@@ -27,11 +28,13 @@ export function GlobalLayer() {
   const rec = useRef<Recorder | null>(null);
   const [online, setOnline] = useState(true);
   const { user } = useAuth();
+  useEffect(() => { setOfflineAccount(user?.id ?? null); }, [user?.id]);
 
   const signedInArea = !!user && !["/auth", "/s/", "/join/", "/.lovable"].some((p) => path.startsWith(p));
 
   // ---- file drop ----
   useEffect(() => {
+    if (!user) return;
     if (!signedInArea) return;
     const hasFiles = (e: DragEvent) => e.dataTransfer?.types.includes("Files");
     const enter = (e: DragEvent) => { if (!hasFiles(e)) return; e.preventDefault(); depth.current++; setDragging(true); };
@@ -161,7 +164,7 @@ export function GlobalLayer() {
     window.addEventListener("online", sync);
     window.addEventListener("offline", sync);
     return () => { window.removeEventListener("online", sync); window.removeEventListener("offline", sync); };
-  }, [qc]);
+  }, [qc, user]);
 
   if (!signedInArea) return null;
   return (

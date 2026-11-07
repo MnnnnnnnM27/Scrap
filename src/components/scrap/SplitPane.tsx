@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatThread } from "./ChatThread";
-import { getDocument, listDocuments, saveDocument } from "@/lib/documents";
+import { getDocument, listDocuments, saveDocument, stageDocumentSave } from "@/lib/documents";
 import { activeEditor } from "@/lib/active-editor";
 import { buildExtensions } from "@/lib/editor-extensions";
 import { useSettings } from "@/lib/settings";
@@ -35,7 +35,7 @@ function CompanionEditor({ doc }: { doc: ScrapDocument }) {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const flush = () => { clearTimeout(timer.current); const patch = pending.current; pending.current = {}; if (Object.keys(patch).length) void saveDocument(doc.id, patch).then(() => qc.invalidateQueries({ queryKey: ["documents"] })).catch(() => toast.error("Couldn't sync this page.")); };
   const flushRef = useRef(flush); flushRef.current = flush;
-  const queue = (patch: typeof pending.current) => { pending.current = { ...pending.current, ...patch }; clearTimeout(timer.current); timer.current = setTimeout(() => flushRef.current(), 700); };
+  const queue = (patch: typeof pending.current) => { try { stageDocumentSave(doc.id, patch); } catch { toast.error("Device storage is full."); } pending.current = { ...pending.current, ...patch }; clearTimeout(timer.current); timer.current = setTimeout(() => flushRef.current(), 700); };
   const editor = useEditor({ extensions: buildExtensions(doc.kind), content: doc.content as object, immediatelyRender: false,
     editorProps: { attributes: { spellcheck: String(settings.spellcheck), "aria-label": "Companion text" } },
     onFocus: ({ editor: focused }) => { activeEditor.current = focused; },

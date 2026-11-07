@@ -1,69 +1,70 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { DocKind, FolderColor, ScrapDocument, ScrapFolder } from "./scrap-types";
+import { acknowledgeSave, cachedDocuments, cacheDocuments, forgetCachedDocument, offlineAccount, offlineQueue, setOfflineAccount, stageDocumentSave, type SavePatch } from "./offline-store";
+export { stageDocumentSave } from "./offline-store";
 
 const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] };
 
-// ---- offline cache: last-known copies + queued saves, kept in this browser ----
-const CACHE = "scrap.offline.docs";
-const QUEUE = "scrap.offline.queue";
-type SavePatch = { title?: string; content?: Json; plain_text?: string };
-const readJSON = <T,>(k: string, d: T): T => {
-  try { return JSON.parse(localStorage.getItem(k) || "null") ?? d; } catch { return d; }
-};
-const writeJSON = (k: string, v: unknown) => {
-  try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage full */ }
-};
-function cacheDocs(docs: ScrapDocument[]) {
-  const map = readJSON<Record<string, ScrapDocument>>(CACHE, {});
-  for (const d of docs) map[d.id] = d;
-  writeJSON(CACHE, map);
-}
 const offline = () => typeof navigator !== "undefined" && !navigator.onLine;
+async function accountReady() {
+  const { data } = await supabase.auth.getSession();
+  setOfflineAccount(data.session?.user.id ?? null);
+  if (!data.session) throw new Error("Not signed in");
+}
+let syncPromise: Promise<number> | null = null;
 
 export function pendingOfflineSaves() {
-  return Object.keys(readJSON<Record<string, SavePatch>>(QUEUE, {})).length;
+  return Object.keys(offlineQueue()).length;
 }
 
 export async function syncOfflineSaves(): Promise<number> {
-  const q = readJSON<Record<string, SavePatch>>(QUEUE, {});
-  let n = 0;
-  for (const [id, patch] of Object.entries(q)) {
-    const { error } = await supabase.from("documents").update(patch).eq("id", id);
-    if (error) break;
-    delete q[id];
-    n++;
-    writeJSON(QUEUE, q);
-  }
-  return n;
+  if (syncPromise) return syncPromise;
+  syncPromise = (async () => {
+    await accountReady();
+    const user = offlineAccount();
+    let count = 0;
+    for (const [id, entry] of Object.entries(offlineQueue())) {
+      if (offline() || offlineAccount() !== user) break;
+      const { data, error } = await supabase.from("documents").update(entry.patch).eq("id", id).select("id").maybeSingle();
+      if (error || !data || offlineAccount() !== user) break;
+      acknowledgeSave(id, entry.revision); count++;
+    }
+    return count;
+  })().finally(() => { syncPromise = null; });
+  return syncPromise;
 }
 
 export async function listDocuments(trashed = false): Promise<ScrapDocument[]> {
+  await accountReady();
+  if (offline() && !trashed) return Object.values(cachedDocuments()).filter(doc => !doc.deleted_at).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   try {
     let query = supabase.from("documents").select("*").order("updated_at", { ascending: false });
     query = trashed ? query.not("deleted_at", "is", null) : query.is("deleted_at", null);
     const { data, error } = await query;
     if (error) throw error;
-    if (!trashed) cacheDocs((data ?? []) as ScrapDocument[]);
-    return (data ?? []) as ScrapDocument[];
+    if (!trashed) cacheDocuments((data ?? []) as ScrapDocument[], true);
+    return ((data ?? []) as ScrapDocument[]).map(doc => ({ ...doc, ...offlineQueue()[doc.id]?.patch }));
   } catch (e) {
     if (trashed || !offline()) throw e;
-    return Object.values(readJSON<Record<string, ScrapDocument>>(CACHE, {}))
+    return Object.values(cachedDocuments())
       .filter((d) => !d.deleted_at)
       .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   }
 }
 
 export async function getDocument(id: string): Promise<ScrapDocument | null> {
+  await accountReady();
+  if (offline()) return cachedDocuments()[id] ?? null;
   try {
     const { data, error } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
-    if (data) cacheDocs([data as ScrapDocument]);
-    return (data as ScrapDocument) ?? null;
+    if (data) cacheDocuments([data as ScrapDocument]);
+    return data ? { ...(data as ScrapDocument), ...offlineQueue()[id]?.patch } : null;
   } catch (e) {
-    const cached = readJSON<Record<string, ScrapDocument>>(CACHE, {})[id];
-    if (!cached) throw e;
-    const patch = readJSON<Record<string, SavePatch>>(QUEUE, {})[id];
+    const cached = cachedDocuments()[id];
+    if (!offline() || !cached) throw e;
+    const patch = offlineQueue()[id]?.patch;
     return { ...cached, ...(patch as Partial<ScrapDocument>) };
   }
 }
@@ -86,6 +87,8 @@ export async function createDocument(
     .select("*")
     .single();
   if (error) throw error;
+  await accountReady();
+  cacheDocuments([data as ScrapDocument]);
   return data as ScrapDocument;
 }
 
@@ -93,21 +96,10 @@ export async function saveDocument(
   id: string,
   patch: SavePatch,
 ): Promise<void> {
-  const map = readJSON<Record<string, ScrapDocument>>(CACHE, {});
-  if (map[id]) { map[id] = { ...map[id], ...(patch as Partial<ScrapDocument>), updated_at: new Date().toISOString() }; writeJSON(CACHE, map); }
-  const queueIt = () => {
-    const q = readJSON<Record<string, SavePatch>>(QUEUE, {});
-    q[id] = { ...q[id], ...patch };
-    writeJSON(QUEUE, q);
-  };
-  if (offline()) return queueIt();
-  try {
-    const { error } = await supabase.from("documents").update(patch).eq("id", id);
-    if (error) throw error;
-  } catch (e) {
-    if (e instanceof TypeError || offline()) return queueIt(); // network failure — keep it for later
-    throw e;
-  }
+  await accountReady();
+  stageDocumentSave(id, patch);
+  if (offline()) return;
+  await syncOfflineSaves();
 }
 
 export async function trashDocument(id: string): Promise<void> {
@@ -116,6 +108,7 @@ export async function trashDocument(id: string): Promise<void> {
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw error;
+  forgetCachedDocument(id);
 }
 
 export async function restoreDocument(id: string): Promise<void> {

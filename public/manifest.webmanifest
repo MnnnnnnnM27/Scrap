@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "Scrap",
+  "short_name": "Scrap",
+  "description": "Notes, pages, and research in one calm place.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#1a1a1e",
+  "background_color": "#1a1a1e",
+  "icons": [
+    { "src": "/icons/scrap-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/scrap-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/scrap-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/scrap-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ]
+}

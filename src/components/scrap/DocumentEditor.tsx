@@ -31,6 +31,7 @@ import {
   getOrCreateShareLink,
   revokeShareLinks,
   saveDocument,
+  stageDocumentSave,
   trashDocument,
 } from "@/lib/documents";
 import { buildExtensions } from "@/lib/editor-extensions";
@@ -117,6 +118,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
 
   const queue = useCallback(
     (patch: typeof pending.current) => {
+      try { stageDocumentSave(doc.id, patch); } catch { toast.error("Device storage is full — keep this page open until it syncs."); }
       pending.current = { ...pending.current, ...patch };
       clearTimeout(timer.current);
       timer.current = setTimeout(flush, 700);
