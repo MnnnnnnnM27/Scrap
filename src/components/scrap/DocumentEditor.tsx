@@ -3,7 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { BarChart3, Download, Link2, Sparkles, Table, Trash2, Wand2, X } from "lucide-react";
+import { BarChart3, Columns2, Mic, Download, Link2, Sparkles, Table, Trash2, Wand2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SplitPane } from "./SplitPane";
+import { activeEditor } from "@/lib/active-editor";
+import { readShortcuts } from "@/lib/shortcuts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,6 +31,7 @@ import {
   getOrCreateShareLink,
   revokeShareLinks,
   saveDocument,
+  stageDocumentSave,
   trashDocument,
 } from "@/lib/documents";
 import { buildExtensions } from "@/lib/editor-extensions";
@@ -59,6 +64,8 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   const titleRef = useRef(title);
   titleRef.current = title;
   const [askOpen, setAskOpen] = useState(false);
+  const [split, setSplit] = useState(false);
+  useEffect(() => { const toggle = () => setSplit(value => !value); window.addEventListener("scrap:split", toggle); return () => window.removeEventListener("scrap:split", toggle); }, []);
   const [slash, setSlash] = useState<SlashState | null>(null);
   const slashKeyRef = useRef<((e: KeyboardEvent) => boolean) | null>(null);
   const [ghost, setGhost] = useState("");
@@ -111,6 +118,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
 
   const queue = useCallback(
     (patch: typeof pending.current) => {
+      try { stageDocumentSave(doc.id, patch); } catch { toast.error("Device storage is full — keep this page open until it syncs."); }
       pending.current = { ...pending.current, ...patch };
       clearTimeout(timer.current);
       timer.current = setTimeout(flush, 700);
@@ -132,10 +140,10 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     }
     if (!settingsRef.current.slash_commands || !empty) return setSlash(null);
     const before = $from.parent.textBetween(0, $from.parentOffset, undefined, "\ufffc");
-    const m = /^\/(\w*)$/.exec(before);
-    if (!m) return setSlash(null);
+    const trigger = readShortcuts().slashTrigger;
+    if (!before.startsWith(trigger) || !/^\w*$/.test(before.slice(trigger.length))) return setSlash(null);
     const c = e.view.coordsAtPos($from.pos);
-    setSlash({ query: m[1] ?? "", from: $from.pos - before.length, to: $from.pos, top: c.top, left: c.left });
+    setSlash({ query: before.slice(trigger.length), from: $from.pos - before.length, to: $from.pos, top: c.top, left: c.left });
   };
 
   const editor = useEditor({
@@ -160,6 +168,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       },
     },
     onSelectionUpdate: ({ editor: e }) => track(e),
+    onFocus: ({ editor: e }) => { activeEditor.current = e; },
     onUpdate: ({ editor: e }) => {
       if (!remoteApplying.current) broadcastRef.current?.(e.getJSON());
       queue({ content: e.getJSON() as Json, plain_text: e.getText() });
@@ -186,6 +195,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   });
 
   editorRef.current = editor;
+  useEffect(() => { if (editor) activeEditor.current = editor; return () => { if (activeEditor.current === editor) activeEditor.current = null; }; }, [editor]);
 
   // spellcheck lives on the editable element itself
   useEffect(() => {
@@ -233,7 +243,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
         setPeers(
           Object.entries(state)
             .filter(([k]) => k !== user.id)
-            .map(([k, v]) => ({ id: k, ...v[v.length - 1]! })),
+            .flatMap(([k, v]) => { const peer = v[v.length - 1]; return peer ? [{ id: k, ...peer }] : []; }),
         );
       })
       .subscribe((status) => {
@@ -354,12 +364,12 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     CANVAS_WIDTHS.find((w) => w.key === settings.canvas_width)?.className ?? "max-w-3xl";
 
   return (
-    <div className="min-h-screen">
-      <div className="no-print"><TopBar kind={kind} onAskGemini={() => setAskOpen((o) => !o)} left={menu} /></div>
+    <div className={cn("min-h-screen", split && "split-layout")}>
+      <div className="no-print"><TopBar kind={kind} onAskGemini={() => setAskOpen((o) => !o)} left={menu} tools={<><Button variant="ghost" size="icon" aria-label="Dictate" title="Dictate" onClick={() => window.dispatchEvent(new Event("scrap:voice"))}><Mic /></Button><Button variant="ghost" size="icon" aria-label="Split view" title="Split view" aria-pressed={split} onClick={() => setSplit(value => !value)}><Columns2 /></Button></>} /></div>
       {editor && <div className="no-print"><Toolbar editor={editor} kind={kind} /></div>}
       <main
         className={cn(
-          "px-4 pt-24 sm:px-10", settings.typeliner ? "pb-[50vh]" : "pb-32",
+          "primary-document px-4 pt-24 sm:px-10", settings.typeliner ? "pb-[50vh]" : "pb-32",
           settings.toolbar_side === "left" ? "pl-16 sm:pl-24" : "pr-16 sm:pr-24",
         )}
       >
@@ -394,6 +404,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
           )}
         </div>
       </main>
+      {split && <SplitPane primaryId={doc.id} onClose={() => setSplit(false)} />}
 
       {settings.show_word_count && (
         <p className="no-print fixed bottom-4 left-1/2 z-20 -translate-x-1/2 text-[11px] tracking-wide text-muted-foreground">

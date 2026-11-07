@@ -8,3 +8,9 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- GlobalLayer owns app-wide shortcuts, document imports, dictation, and reconnect syncing, so these behave consistently across signed-in screens.
+- Offline document snapshots and revisioned save queues are scoped to the signed-in account; persist edits before debounce and acknowledge only confirmed row updates to prevent loss and cross-account exposure.
+- SplitPane edits a second document independently from the primary editor; global dictation targets the focused editor.
+- Offline launch uses vite-plugin-pwa generateSW and a single guarded registrar; never register app-shell workers in development, iframe, or Lovable previews.
+- Dock icon PNGs are deterministic renders of the ScrapMark path, keeping installed artwork identical to the in-app logo.

@@ -1,4 +1,5 @@
-import { WhatsNew } from "@/components/scrap/WhatsNew";
+import { GlobalLayer } from "@/components/scrap/GlobalLayer";
+import { initializeOfflineLaunch } from "@/lib/pwa";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -95,6 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#1a1a1e" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -109,6 +111,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700,400i&display=swap",
       },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png", sizes: "180x180" },
+      { rel: "icon", href: "/icons/scrap-512.png", type: "image/png", sizes: "512x512" },
     ],
   }),
   shellComponent: RootShell,
@@ -133,6 +138,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => { void initializeOfflineLaunch().catch(console.error); }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -140,7 +146,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster position="top-center" />
-        <WhatsNew />
+        <GlobalLayer />
       </SettingsProvider>
     </QueryClientProvider>
   );

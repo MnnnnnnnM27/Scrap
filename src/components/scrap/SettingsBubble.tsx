@@ -16,6 +16,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { ShortcutSettings } from "./ShortcutSettings";
 
 const ACCENT_SWATCH: Record<AccentTheme, string> = {
   "dark-grey": "oklch(0.36 0.008 265)",
@@ -76,10 +77,11 @@ export function SettingsBubble() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-[340px] overflow-y-auto sm:w-[380px]">
           <SheetHeader>
-            <SheetTitle className="text-[17px] tracking-tight">Settings</SheetTitle>
+            <SheetTitle className="flex items-center gap-2 text-[17px]">Settings <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">v4.0</span></SheetTitle>
           </SheetHeader>
 
           <div className="space-y-8 px-4 pb-10">
+            <ShortcutSettings />
             <Group title="Appearance">
               <div className="flex rounded-full bg-muted p-1">
                 {(["light", "dark"] as ColorMode[]).map((mode) => (
@@ -204,7 +206,6 @@ export function SettingsBubble() {
               <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
                 <Toggle label="Card previews" hint="Off shows slim title-only pills." checked={settings.card_previews} onChange={(v) => set({ card_previews: v })} />
                 <Toggle label="Pages only" hint="Hides Notes. Home becomes Pages." checked={settings.pages_only} onChange={(v) => set({ pages_only: v })} />
-                <Toggle label="What's new bubble" hint="Once after each update." checked={settings.show_whats_new} onChange={(v) => set({ show_whats_new: v })} />
               </div>
             </Group>
 
