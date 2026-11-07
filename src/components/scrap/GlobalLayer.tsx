@@ -61,7 +61,7 @@ export function GlobalLayer() {
           tmp.innerHTML = imp.html;
           const doc = await createDocument(kind, { title: imp.title, content, plain_text: tmp.innerText.slice(0, 200000) });
           void qc.invalidateQueries({ queryKey: ["documents"] });
-          void navigate({ to: kind === "note" ? "/note/$id" : "/page/$id", params: { id: doc.id } });
+          void navigate({ to: "/page/$id", params: { id: doc.id } });
         }
       } catch (err) {
         console.error(err);
