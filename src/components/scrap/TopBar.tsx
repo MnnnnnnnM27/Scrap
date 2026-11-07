@@ -9,10 +9,12 @@ export function TopBar({
   kind,
   onAskGemini,
   left,
+  tools,
 }: {
   kind: DocKind;
   onAskGemini: () => void;
   left?: ReactNode;
+  tools?: ReactNode;
 }) {
   const navigate = useNavigate();
   const { settings } = useSettings();
@@ -28,6 +30,7 @@ export function TopBar({
         <ScrapMark className="h-6 w-6" />
       </Link>
       <div className="flex min-w-0 flex-1 items-center gap-1">{left}</div>
+      <div className="flex shrink-0 items-center gap-0.5">{tools}</div>
       {!settings.pages_only && <div className="flex items-center rounded-full bg-muted p-0.5 text-[13px]">
         {(["note", "page"] as const).map((k) => (
           <button

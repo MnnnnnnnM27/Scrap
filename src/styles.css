@@ -282,6 +282,16 @@
 }
 
 /* ---------- Editor (ProseMirror) ---------- */
+.split-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 40%); height: 100dvh; padding-top: 72px; overflow: hidden; }
+.split-layout .primary-document { min-width: 0; overflow-y: auto; padding-top: 24px; padding-inline: 48px; }
+.split-layout .canvas-surface { padding-inline: 24px; }
+.split-companion { height: 100%; }
+@media (max-width: 767px) {
+  .split-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); padding-top: 112px; }
+  .split-layout .primary-document { padding-inline: 42px; }
+  .split-companion { border-top: 1px solid var(--border); }
+  header.glass:has([aria-label="Split view"]) { flex-wrap: wrap; border-radius: 24px; }
+}
 
 .scrap-editor .ProseMirror {
   outline: none;
