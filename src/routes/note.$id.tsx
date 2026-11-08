@@ -10,6 +10,8 @@ export const Route = createFileRoute("/note/$id")({
       { name: "description", content: "A quick note in Scrap." },
       { property: "og:title", content: "Note — Scrap" },
       { property: "og:description", content: "A quick note in Scrap." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: NoteRoute,

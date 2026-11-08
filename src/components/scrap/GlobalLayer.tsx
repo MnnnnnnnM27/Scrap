@@ -47,7 +47,7 @@ export function GlobalLayer() {
       setDragging(false);
       if (!file) return;
       // images inside an editor are handled by the editor itself
-      if (file.type.startsWith("image/") && activeEditor.current) return;
+      if (file.type.startsWith("image/") && e.target instanceof Element && e.target.closest(".ProseMirror")) return;
       e.preventDefault();
       e.stopPropagation();
       if (!isImportable(file)) return void toast.error("Scrap opens .docx, .pdf, .md and .txt files.");
@@ -80,7 +80,7 @@ export function GlobalLayer() {
       window.removeEventListener("dragleave", leave);
       window.removeEventListener("drop", drop, true);
     };
-  }, [signedInArea, settings.pages_only, path, navigate, qc]);
+  }, [signedInArea, user, path, navigate, qc]);
 
   // ---- dictation ----
   const toggleVoice = async () => {
@@ -116,10 +116,12 @@ export function GlobalLayer() {
   const toggleRef = useRef(toggleVoice);
   toggleRef.current = toggleVoice;
   useEffect(() => {
+    if (!signedInArea) return;
     const h = () => void toggleRef.current();
     window.addEventListener("scrap:voice", h);
     return () => window.removeEventListener("scrap:voice", h);
-  }, []);
+  }, [signedInArea]);
+  useEffect(() => () => { rec.current?.cancel(); rec.current = null; }, [user?.id]);
 
   // ---- shortcuts ----
   useEffect(() => {
@@ -145,12 +147,15 @@ export function GlobalLayer() {
         else { await navigate({ to: "/" }); setTimeout(() => document.querySelector<HTMLInputElement>('input[type="search"]')?.focus(), 150); }
       } else if (action === "home") void navigate({ to: "/" });
       else if (action === "research") void navigate({ to: "/research" });
-      else if (action === "split") window.dispatchEvent(new Event("scrap:split"));
+      else if (action === "split") {
+        if (/^\/(?:note|page)\//.test(path)) window.dispatchEvent(new Event("scrap:split"));
+        else toast("Open a document to use split view.");
+      }
       else if (action === "voice") void toggleRef.current();
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [signedInArea, settings.pages_only, navigate, qc]);
+  }, [signedInArea, settings.pages_only, path, navigate, qc]);
 
   // ---- offline sync ----
   useEffect(() => {

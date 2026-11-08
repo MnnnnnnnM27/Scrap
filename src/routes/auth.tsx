@@ -17,6 +17,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in to Scrap to sync your notes and pages." },
       { property: "og:title", content: "Sign in — Scrap" },
       { property: "og:description", content: "Sign in to Scrap to sync your notes and pages." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,

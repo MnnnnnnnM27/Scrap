@@ -30,7 +30,7 @@ import {
   getDocument,
   getOrCreateShareLink,
   revokeShareLinks,
-  saveDocument,
+  syncOfflineSaves,
   stageDocumentSave,
   trashDocument,
 } from "@/lib/documents";
@@ -111,7 +111,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     const patch = pending.current;
     pending.current = {};
     if (!Object.keys(patch).length) return;
-    void saveDocument(doc.id, patch)
+    void syncOfflineSaves()
       .then(() => queryClient.invalidateQueries({ queryKey: ["documents"] }))
       .catch(() => toast.error("Couldn't save — check your connection."));
   }, [doc.id, queryClient]);
@@ -134,8 +134,11 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
     if (settingsRef.current.typeliner && e.isFocused) {
       requestAnimationFrame(() => {
         const c = e.view.coordsAtPos(e.state.selection.from);
-        const d = c.top - window.innerHeight / 2;
-        if (Math.abs(d) > 4) window.scrollBy({ top: d, behavior: "auto" });
+        const scroller = canvasRef.current?.closest(".primary-document");
+        const scrollsLocally = scroller && getComputedStyle(scroller).overflowY === "auto";
+        const bounds = scrollsLocally ? scroller.getBoundingClientRect() : null;
+        const d = c.top - (bounds ? bounds.top + bounds.height / 2 : window.innerHeight / 2);
+        if (Math.abs(d) > 4) (scrollsLocally ? scroller : window).scrollBy({ top: d, behavior: "auto" });
       });
     }
     if (!settingsRef.current.slash_commands || !empty) return setSlash(null);
@@ -195,7 +198,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
   });
 
   editorRef.current = editor;
-  useEffect(() => { if (editor) activeEditor.current = editor; return () => { if (activeEditor.current === editor) activeEditor.current = null; }; }, [editor]);
+  useEffect(() => () => { if (activeEditor.current === editor) activeEditor.current = null; }, [editor]);
 
   // spellcheck lives on the editable element itself
   useEffect(() => {

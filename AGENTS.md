@@ -14,3 +14,5 @@
 - SplitPane edits a second document independently from the primary editor; global dictation targets the focused editor.
 - Offline launch uses vite-plugin-pwa generateSW and a single guarded registrar; never register app-shell workers in development, iframe, or Lovable previews.
 - Dock icon PNGs are deterministic renders of the ScrapMark path, keeping installed artwork identical to the in-app logo.
+- Offline queue revisions increase per account even after acknowledgement; editor flushes sync staged entries instead of restaging stale patches to avoid overwriting newer edits.
+- Split view places its two editors explicitly in grid tracks while fixed tool wrappers use display: contents, preventing empty toolbar rows from displacing either editor.
