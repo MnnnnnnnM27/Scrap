@@ -96,7 +96,7 @@ export async function saveDocument(
   id: string,
   patch: SavePatch,
 ): Promise<void> {
-  await accountReady();
+  if (!offlineAccount()) await accountReady();
   stageDocumentSave(id, patch);
   if (offline()) return;
   await syncOfflineSaves();
@@ -151,8 +151,15 @@ export async function revokeShareLinks(documentId: string): Promise<void> {
 }
 
 export async function listFolders(): Promise<ScrapFolder[]> {
+  await accountReady();
+  const account = offlineAccount();
+  const cacheKey = `scrap.offline.${account}.folders`;
+  if (offline()) {
+    try { return JSON.parse(localStorage.getItem(cacheKey) || "[]") as ScrapFolder[]; } catch { return []; }
+  }
   const { data, error } = await supabase.from("folders").select("*").order("position").order("created_at");
   if (error) throw error;
+  if (offlineAccount() === account) localStorage.setItem(cacheKey, JSON.stringify(data ?? []));
   return (data ?? []) as ScrapFolder[];
 }
 

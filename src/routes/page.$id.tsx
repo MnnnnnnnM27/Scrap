@@ -10,6 +10,8 @@ export const Route = createFileRoute("/page/$id")({
       { name: "description", content: "A long-form page in Scrap." },
       { property: "og:title", content: "Page — Scrap" },
       { property: "og:description", content: "A long-form page in Scrap." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PageRoute,

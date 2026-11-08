@@ -19,7 +19,9 @@ export function cacheDocuments(docs: ScrapDocument[], replace = false) {
 }
 export function stageDocumentSave(id: string, patch: SavePatch) {
   const queue = offlineQueue();
-  queue[id] = { patch: { ...queue[id]?.patch, ...patch }, revision: (queue[id]?.revision ?? 0) + 1 };
+  const revision = read<number>("revision", 0) + 1;
+  write("revision", revision);
+  queue[id] = { patch: { ...queue[id]?.patch, ...patch }, revision };
   write("queue", queue);
   const docs = cachedDocuments();
   if (docs[id]) { docs[id] = { ...docs[id], ...patch, updated_at: new Date().toISOString() }; write("docs", docs); }
