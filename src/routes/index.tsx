@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AuthGate } from "@/components/scrap/AuthGate";
 import { DocumentCard } from "@/components/scrap/DocumentCard";
 import { ScrapMark } from "@/components/scrap/ScrapLogo";
-import { FolderList } from "@/components/scrap/FolderList";
+import { FolderList, type FolderSelection } from "@/components/scrap/FolderList";
 import { useSettings } from "@/lib/settings";
 import { SettingsBubble } from "@/components/scrap/SettingsBubble";
 import { createDocument, createFolder, deleteFolder, listDocuments, listFolders, moveToFolder, trashDocument, updateFolder } from "@/lib/documents";
@@ -84,7 +84,11 @@ function Home() {
   const onMove = (docId: string, folderId: string | null) => move.mutate({ docId, folderId });
 
   const create = useMutation({
-    mutationFn: (kind: DocKind) => createDocument(kind),
+    mutationFn: async (kind: DocKind) => {
+      const doc = await createDocument(kind);
+      if (kind === "page" && selFolder) await moveToFolder(doc.id, selFolder.id).catch(() => {});
+      return doc;
+    },
     onSuccess: (doc) => {
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
       void navigate({
@@ -104,6 +108,12 @@ function Home() {
     onError: () => toast.error("Couldn't delete that just now."),
   });
 
+  const [folderSel, setFolderSel] = useState<FolderSelection>("all");
+  const activeFolder = folderSel === "all" || folderSel === "unfiled" || folders.some((f) => f.id === folderSel);
+  const sel = activeFolder ? folderSel : "all";
+  const selFolder = folders.find((f) => f.id === sel);
+  const folderTitle = sel === "unfiled" ? "Unfiled" : selFolder ? selFolder.name : "All pages";
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const match = (d: ScrapDocument) =>
@@ -115,6 +125,12 @@ function Home() {
       pages: documents.filter((d) => d.kind === "page" && match(d)),
     };
   }, [documents, search]);
+  const folderDocs =
+    sel === "all"
+      ? filtered.pages
+      : sel === "unfiled"
+        ? filtered.pages.filter((d) => !d.folder_id || !folders.some((f) => f.id === d.folder_id))
+        : filtered.pages.filter((d) => d.folder_id === sel);
 
   return (
     <div className="min-h-screen pb-28">
@@ -189,29 +205,41 @@ function Home() {
                 onDelete={(id) => remove.mutate(id)}
               />
             )}
-            {view === "pages" && !search.trim() && (
-              <section aria-label="Folders">
-                <FolderList
-                  folders={folders}
-                  docs={filtered.pages}
-                  preview={preview}
-                  onDelete={(id) => remove.mutate(id)}
-                  onMove={onMove}
-                  onSave={(d) => saveFolder.mutate(d)}
-                  onDeleteFolder={(id) => removeFolder.mutate(id)}
-                />
-              </section>
+            {view === "pages" && (
+              <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+                <aside className="lg:sticky lg:top-24 lg:w-56 lg:shrink-0 lg:self-start">
+                  <FolderList
+                    folders={folders}
+                    docs={filtered.pages}
+                    selected={activeFolder ? folderSel : "all"}
+                    onSelect={setFolderSel}
+                    onSave={(d) => saveFolder.mutate(d)}
+                    onDeleteFolder={(id) => removeFolder.mutate(id)}
+                  />
+                </aside>
+                <div className="min-w-0 flex-1">
+                  <Section
+                    preview={preview}
+                    folders={folders}
+                    onMove={onMove}
+                    id="pages"
+                    title={folderTitle}
+                    icon={<FileText className="h-4 w-4" />}
+                    docs={folderDocs}
+                    emptyLabel={folderSel === "all" || !activeFolder ? "No pages yet." : "Nothing here yet — use ••• on a page to move it in."}
+                    onDelete={(id) => remove.mutate(id)}
+                  />
+                </div>
+              </div>
             )}
-            {view !== "notes" && (
+            {view === "all" && (
               <Section
                 preview={preview}
-                folders={view === "pages" ? folders : undefined}
-                onMove={onMove}
                 id="pages"
                 title="Pages"
                 icon={<FileText className="h-4 w-4" />}
-                docs={view === "pages" && !search.trim() ? filtered.pages.filter((d) => !d.folder_id || !folders.some((f) => f.id === d.folder_id)) : filtered.pages}
-                emptyLabel={view === "pages" ? "No loose pages." : "No pages yet."}
+                docs={filtered.pages}
+                emptyLabel="No pages yet."
                 onDelete={(id) => remove.mutate(id)}
               />
             )}
