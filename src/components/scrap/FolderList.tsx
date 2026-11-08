@@ -1,6 +1,5 @@
-import { ChevronRight, Folder, FolderPlus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { FileText, Folder, FolderPlus, Inbox, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { DocumentCard } from "@/components/scrap/DocumentCard";
 import {
   Dialog,
   DialogContent,
@@ -19,99 +18,91 @@ import { FOLDER_COLORS, type FolderColor, type ScrapDocument, type ScrapFolder }
 import { cn } from "@/lib/utils";
 
 type Draft = { id?: string; name: string; color: FolderColor };
+export type FolderSelection = "all" | "unfiled" | string;
 
+/** Sidebar of folders; the main area shows only the selected folder's pages. */
 export function FolderList({
   folders,
   docs,
-  preview,
-  onDelete,
-  onMove,
+  selected,
+  onSelect,
   onSave,
   onDeleteFolder,
 }: {
   folders: ScrapFolder[];
   docs: ScrapDocument[];
-  preview: boolean;
-  onDelete: (id: string) => void;
-  onMove: (docId: string, folderId: string | null) => void;
+  selected: FolderSelection;
+  onSelect: (s: FolderSelection) => void;
   onSave: (d: Draft) => void;
   onDeleteFolder: (id: string) => void;
 }) {
-  const [open, setOpen] = useState<Record<string, boolean>>({});
   const [draft, setDraft] = useState<Draft | null>(null);
-  const grid = preview ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "grid gap-2 sm:grid-cols-2";
+  const known = new Set(folders.map((f) => f.id));
+  const unfiled = docs.filter((d) => !d.folder_id || !known.has(d.folder_id)).length;
+
+  const row = (active: boolean) =>
+    cn(
+      "flex min-h-10 w-full shrink-0 items-center gap-2.5 rounded-xl px-3 text-left text-[14px] transition-colors lg:w-full",
+      active ? "bg-accent font-medium text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+    );
 
   return (
-    <div className="space-y-2">
+    <nav aria-label="Folders" className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+      <button type="button" className={cn(row(selected === "all"), "w-auto")} onClick={() => onSelect("all")}>
+        <FileText className="h-4 w-4" /> <span className="flex-1 whitespace-nowrap">All pages</span>
+        <span className="text-[12px] text-muted-foreground">{docs.length}</span>
+      </button>
+      <button type="button" className={cn(row(selected === "unfiled"), "w-auto")} onClick={() => onSelect("unfiled")}>
+        <Inbox className="h-4 w-4" /> <span className="flex-1 whitespace-nowrap">Unfiled</span>
+        <span className="text-[12px] text-muted-foreground">{unfiled}</span>
+      </button>
+
+      <div className="hidden px-3 pt-4 pb-1 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase lg:block">
+        Folders
+      </div>
+
       {folders.map((f) => {
-        const items = docs.filter((d) => d.folder_id === f.id);
-        const isOpen = open[f.id] ?? true;
+        const count = docs.filter((d) => d.folder_id === f.id).length;
         return (
-          <div key={f.id} className="group/folder">
-            <div className="flex items-center gap-1 rounded-xl pr-1 transition-colors hover:bg-accent/60">
-              <button
-                type="button"
-                aria-expanded={isOpen}
-                onClick={() => setOpen((o) => ({ ...o, [f.id]: !isOpen }))}
-                className="flex min-h-11 flex-1 items-center gap-2.5 px-2 text-left"
-              >
-                <ChevronRight
-                  className={cn("h-4 w-4 text-muted-foreground transition-transform duration-300 ease-out", isOpen && "rotate-90")}
-                />
-                <Folder className="h-[18px] w-[18px]" style={{ color: `var(--folder-${f.color})`, fill: `color-mix(in oklab, var(--folder-${f.color}) 22%, transparent)` }} />
-                <span className="truncate text-[15px] font-medium">{f.name}</span>
-                <span className="text-[13px] text-muted-foreground">{items.length}</span>
-              </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={`${f.name} options`}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-opacity group-hover/folder:opacity-100 hover:bg-accent focus:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuItem onSelect={() => setDraft({ id: f.id, name: f.name, color: f.color })}>
-                    <Pencil className="mr-2 h-4 w-4 text-muted-foreground" /> Edit folder
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => onDeleteFolder(f.id)}>
-                    <Trash2 className="mr-2 h-4 w-4 text-destructive" /> Delete folder
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            <div
-              className={cn(
-                "grid transition-all duration-300 ease-out",
-                isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-              )}
-            >
-              <div className="overflow-hidden">
-                <div className="py-2 pl-8">
-                  {items.length === 0 ? (
-                    <p className="py-2 text-[13px] text-muted-foreground">Empty — use ••• on a page to add it here.</p>
-                  ) : (
-                    <div className={grid}>
-                      {items.map((d) => (
-                        <DocumentCard key={d.id} doc={d} preview={preview} folders={folders} onMove={onMove} onDelete={onDelete} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+          <div key={f.id} className={cn("group/folder relative flex shrink-0 items-center", row(selected === f.id), "w-auto p-0 lg:w-full")}>
+            <button type="button" onClick={() => onSelect(f.id)} className="flex min-h-10 flex-1 items-center gap-2.5 pl-3 text-left">
+              <Folder
+                className="h-4 w-4"
+                style={{ color: `var(--folder-${f.color})`, fill: `color-mix(in oklab, var(--folder-${f.color}) 22%, transparent)` }}
+              />
+              <span className="max-w-[10rem] truncate whitespace-nowrap">{f.name}</span>
+            </button>
+            <span className="pr-1 text-[12px] text-muted-foreground group-hover/folder:hidden lg:pr-3">{count}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`${f.name} options`}
+                  className="mr-1 hidden h-7 w-7 items-center justify-center rounded-full hover:bg-background/60 group-hover/folder:flex data-[state=open]:flex [@media(hover:none)]:flex"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onSelect={() => setDraft({ id: f.id, name: f.name, color: f.color })}>
+                  <Pencil className="mr-2 h-4 w-4 text-muted-foreground" /> Edit folder
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => { if (selected === f.id) onSelect("all"); onDeleteFolder(f.id); }}>
+                  <Trash2 className="mr-2 h-4 w-4 text-muted-foreground" /> Delete folder
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         );
       })}
+
       <button
         type="button"
         onClick={() => setDraft({ name: "", color: "marine" })}
-        className="flex min-h-11 items-center gap-2 rounded-xl px-2 text-[14px] text-brand transition-colors hover:bg-accent/60"
+        className="flex min-h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-[14px] whitespace-nowrap text-brand transition-colors hover:bg-accent/60"
       >
-        <FolderPlus className="h-[18px] w-[18px]" /> New folder
+        <FolderPlus className="h-4 w-4" /> New folder
       </button>
 
       <Dialog open={!!draft} onOpenChange={(o) => !o && setDraft(null)}>
@@ -171,6 +162,6 @@ export function FolderList({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </nav>
   );
 }
