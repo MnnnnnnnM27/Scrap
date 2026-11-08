@@ -12,7 +12,7 @@ describe("offline saves", () => {
     expect(offlineQueue()).toEqual({});
     expect(cachedDocuments()).toEqual({});
     setOfflineAccount("account-a");
-    expect(offlineQueue().page?.patch.title).toBe("Private page");
+    expect(offlineQueue()["page"]?.patch.title).toBe("Private page");
   });
   it("persists edits immediately before any debounce", () => {
     stageDocumentSave("page", { plain_text: "Saved before leaving" });
@@ -20,26 +20,26 @@ describe("offline saves", () => {
   });
   it("does not acknowledge an edit made during an earlier save", () => {
     stageDocumentSave("page", { title: "First" });
-    const first = offlineQueue().page;
+    const first = offlineQueue()["page"];
     expect(first).toBeDefined();
     if (!first) return;
     stageDocumentSave("page", { title: "Second" });
     acknowledgeSave("page", first.revision);
-    expect(offlineQueue().page?.patch.title).toBe("Second");
+    expect(offlineQueue()["page"]?.patch.title).toBe("Second");
   });
   it("never reuses revisions after an acknowledged save", () => {
     stageDocumentSave("page", { title: "First" });
-    const first = offlineQueue().page;
+    const first = offlineQueue()["page"];
     expect(first).toBeDefined();
     if (!first) return;
     acknowledgeSave("page", first.revision);
     stageDocumentSave("page", { title: "Second" });
     acknowledgeSave("page", first.revision);
-    expect(offlineQueue().page?.patch.title).toBe("Second");
+    expect(offlineQueue()["page"]?.patch.title).toBe("Second");
   });
   it("retains queued edits when cloud snapshots refresh", () => {
     stageDocumentSave("page", { title: "Local title" });
     cacheDocuments([{ id: "page", title: "Old title" } as Parameters<typeof cacheDocuments>[0][number]]);
-    expect(cachedDocuments().page?.title).toBe("Local title");
+    expect(cachedDocuments()["page"]?.title).toBe("Local title");
   });
 });

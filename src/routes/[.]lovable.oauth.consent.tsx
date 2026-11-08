@@ -13,7 +13,13 @@ const oauth = () => (supabase.auth as unknown as { oauth: OAuthApi }).oauth;
 
 export const Route = createFileRoute("/.lovable/oauth/consent")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Connect an app — Scrap" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [
+    { title: "Connect an app — Scrap" }, { name: "robots", content: "noindex" },
+    { name: "description", content: "Approve an app connection to your Scrap account." },
+    { property: "og:title", content: "Connect an app — Scrap" },
+    { property: "og:description", content: "Approve an app connection to your Scrap account." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: (s: Record<string, unknown>) => ({
     authorization_id: typeof s["authorization_id"] === "string" ? s["authorization_id"] : "",
   }),

@@ -1,5 +1,5 @@
 # Scrap v4
-- [ ] Finish Settings shortcuts and small version badge; remove update bubble.
-- [ ] Wire global file drop, dictation, and editable split view.
-- [ ] Add flat Dock icons, manifest, and guarded published offline launch.
-- [ ] Verify signed-in imports, dictation, split view, and offline save/reconnect.
+- [x] Finish Settings shortcuts and small version badge; remove update bubble.
+- [x] Wire global file drop, dictation, and editable split view.
+- [x] Add flat Dock icons, manifest, and guarded published offline launch.
+- [ ] Verify signed-in imports, dictation, split view, and offline save/reconnect — blocked until the user signs into the preview; account session minting is unavailable.

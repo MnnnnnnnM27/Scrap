@@ -18,6 +18,8 @@ export const Route = createFileRoute("/trash")({
       { name: "description", content: "Restore or permanently delete notes and pages." },
       { property: "og:title", content: "Trash — Scrap" },
       { property: "og:description", content: "Restore or permanently delete notes and pages." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: () => (
