@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SETTINGS, type UserSettings } from "./scrap-types";
+import { setFolderView, useFolderView } from "./folder-view";
 
 const STORAGE_KEY = "scrap.settings";
 
@@ -103,5 +104,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSettings() {
-  return useContext(SettingsContext);
+  const context = useContext(SettingsContext);
+  const folderView = useFolderView();
+  const update = useCallback((patch: Partial<UserSettings>) => {
+    if (patch.folder_view) setFolderView(patch.folder_view);
+    const { folder_view: _folderView, ...remaining } = patch;
+    if (Object.keys(remaining).length) context.update(remaining);
+  }, [context.update]);
+  return { settings: { ...context.settings, folder_view: folderView }, update };
 }
