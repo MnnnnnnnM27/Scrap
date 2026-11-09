@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Check, LogOut, Moon, PanelLeft, PanelRight, Settings, Sun, Trash2 } from "lucide-react";
+import { Check, LayoutList, LogOut, Moon, PanelLeft, PanelRight, Settings, Sun, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/lib/settings";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/scrap-types";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ShortcutSettings } from "./ShortcutSettings";
 
@@ -203,6 +204,28 @@ export function SettingsBubble() {
             </Group>
 
             <Group title="Home">
+              <div>
+                <p className="mb-2 text-[15px]">Folder view</p>
+                <div className="flex rounded-full bg-muted p-1" role="group" aria-label="Folder view">
+                  {(["sidebar", "compact"] as const).map((layout) => (
+                    <Button
+                      key={layout}
+                      variant="ghost"
+                      aria-pressed={settings.folder_view === layout}
+                      onClick={() => set({ folder_view: layout })}
+                      className={cn(
+                        "h-10 flex-1 rounded-full capitalize",
+                        settings.folder_view === layout
+                          ? "bg-brand text-brand-foreground hover:bg-brand hover:text-brand-foreground"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {layout === "sidebar" ? <PanelLeft /> : <LayoutList />}
+                      {layout}
+                    </Button>
+                  ))}
+                </div>
+              </div>
               <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
                 <Toggle label="Card previews" hint="Off shows slim title-only pills." checked={settings.card_previews} onChange={(v) => set({ card_previews: v })} />
                 <Toggle label="Pages only" hint="Hides Notes. Home becomes Pages." checked={settings.pages_only} onChange={(v) => set({ pages_only: v })} />

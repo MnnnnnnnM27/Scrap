@@ -60,7 +60,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         .eq("user_id", auth.user.id)
         .maybeSingle();
       if (!active || !data) return;
-      const next = { ...DEFAULT_SETTINGS, ...(data as Partial<UserSettings>) };
+      const next = { ...DEFAULT_SETTINGS, ...(data as Partial<UserSettings>), folder_view: readLocal().folder_view };
       if (!["default", "cursive", "switzer", "google-sans", "literata"].includes(next.font)) next.font = "default";
       setSettings(next);
       applyToDom(next);
@@ -88,9 +88,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       void (async () => {
         const { data: auth } = await supabase.auth.getUser();
         if (!auth.user) return;
+        const { folder_view: _folderView, ...cloudSettings } = next;
         await supabase
           .from("user_settings")
-          .upsert({ user_id: auth.user.id, ...next }, { onConflict: "user_id" });
+          .upsert({ user_id: auth.user.id, ...cloudSettings }, { onConflict: "user_id" });
       })();
       return next;
     });

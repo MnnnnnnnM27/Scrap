@@ -23,6 +23,7 @@ export type ColorMode = "light" | "dark";
 export type DocFont = "default" | "cursive" | "switzer" | "google-sans" | "literata";
 export type ToolbarSide = "left" | "right";
 export type CanvasWidth = "narrow" | "standard" | "wide";
+export type FolderView = "sidebar" | "compact";
 
 export type UserSettings = {
   font: DocFont;
@@ -39,6 +40,7 @@ export type UserSettings = {
   slash_commands: boolean;
   confirm_trash: boolean;
   pages_only: boolean;
+  folder_view: FolderView;
   username: string;
   collab_color: string;
   show_cursors: boolean;
@@ -61,6 +63,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   slash_commands: true,
   confirm_trash: false,
   pages_only: false,
+  folder_view: "compact",
   username: "",
   collab_color: "#3b82f6",
   show_cursors: true,
