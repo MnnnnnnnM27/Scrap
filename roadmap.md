@@ -1,5 +1,5 @@
 # Scrap v4
-- [ ] Fix Sidebar selection not updating and test both choices.
+- [x] Fix Sidebar selection with an independent local store; verify both Settings choices in an isolated browser check.
 - [x] Add Settings choice between sidebar and compact folder views; default test and preview build pass.
 - [ ] Verify folder-view switching while signed in — preview opens at sign-in and session minting found no matching account.
 - [x] Finish Settings shortcuts and small version badge; remove update bubble.
