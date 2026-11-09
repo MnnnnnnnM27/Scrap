@@ -16,3 +16,4 @@
 - Dock icon PNGs are deterministic renders of the ScrapMark path, keeping installed artwork identical to the in-app logo.
 - Offline queue revisions increase per account even after acknowledgement; editor flushes sync staged entries instead of restaging stale patches to avoid overwriting newer edits.
 - Split view places its two editors explicitly in grid tracks while fixed tool wrappers use display: contents, preventing empty toolbar rows from displacing either editor.
+- Folder layout is a device-local Settings preference excluded from cloud settings writes; both layouts reuse one folder navigator to keep folder actions consistent without a schema change.

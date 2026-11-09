@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Plus, Search, Sparkle, StickyNote, Trash2 } from "lucide-react";
+import { FileText, PanelLeft, Plus, Search, Sparkle, StickyNote, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthGate } from "@/components/scrap/AuthGate";
@@ -9,6 +9,8 @@ import { ScrapMark } from "@/components/scrap/ScrapLogo";
 import { FolderList, type FolderSelection } from "@/components/scrap/FolderList";
 import { useSettings } from "@/lib/settings";
 import { SettingsBubble } from "@/components/scrap/SettingsBubble";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { createDocument, createFolder, deleteFolder, listDocuments, listFolders, moveToFolder, trashDocument, updateFolder } from "@/lib/documents";
 import type { DocKind, ScrapDocument, ScrapFolder } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
@@ -51,6 +53,7 @@ function Home() {
   const { settings: appSettings } = useSettings();
   const view: View = appSettings.pages_only ? "pages" : rawView;
   const [search, setSearch] = useState("");
+  const [foldersOpen, setFoldersOpen] = useState(false);
   const setView = (next: View) =>
     void navigate({ to: "/", search: next === "all" ? {} : { view: next }, replace: true });
 
@@ -206,9 +209,33 @@ function Home() {
               />
             )}
             {view === "pages" && (
-              <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
-                <aside className="lg:sticky lg:top-24 lg:w-56 lg:shrink-0 lg:self-start">
+              <div className={cn("flex flex-col gap-6", settings.folder_view === "sidebar" && "md:flex-row md:gap-8")}>
+                {settings.folder_view === "sidebar" && (
+                  <div className="md:hidden">
+                    <Button variant="ghost" onClick={() => setFoldersOpen(true)} className="rounded-full">
+                      <PanelLeft /> Folders
+                    </Button>
+                    <Sheet open={foldersOpen} onOpenChange={setFoldersOpen}>
+                      <SheetContent side="left" className="w-[min(320px,90vw)] overflow-y-auto">
+                        <SheetHeader><SheetTitle>Folders</SheetTitle></SheetHeader>
+                        <div className="px-4 pb-6">
+                          <FolderList
+                            view="sidebar"
+                            folders={folders}
+                            docs={filtered.pages}
+                            selected={sel}
+                            onSelect={(next) => { setFolderSel(next); setFoldersOpen(false); }}
+                            onSave={(d) => saveFolder.mutate(d)}
+                            onDeleteFolder={(id) => removeFolder.mutate(id)}
+                          />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                )}
+                <aside className={cn("min-w-0", settings.folder_view === "sidebar" ? "hidden md:sticky md:top-24 md:block md:w-48 md:shrink-0 md:self-start" : "w-full")}>
                   <FolderList
+                    view={settings.folder_view}
                     folders={folders}
                     docs={filtered.pages}
                     selected={activeFolder ? folderSel : "all"}
@@ -308,7 +335,7 @@ function Section({
     <section id={id} className="scroll-mt-24">
       <div className="mb-4 flex items-center gap-2 text-brand">
         {icon}
-        <h2 className="text-[13px] font-semibold tracking-[0.12em] uppercase">{title}</h2>
+        <h2 className="min-w-0 break-words text-[13px] font-semibold uppercase">{title}</h2>
         <span className="text-[13px] text-muted-foreground">{docs.length}</span>
       </div>
       {docs.length === 0 ? (
