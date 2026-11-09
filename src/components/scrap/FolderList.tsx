@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FOLDER_COLORS, type FolderColor, type ScrapDocument, type ScrapFolder } from "@/lib/scrap-types";
+import { FOLDER_COLORS, type FolderColor, type FolderView, type ScrapDocument, type ScrapFolder } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
 
 type Draft = { id?: string; name: string; color: FolderColor };
@@ -28,6 +28,7 @@ export function FolderList({
   onSelect,
   onSave,
   onDeleteFolder,
+  view = "compact",
 }: {
   folders: ScrapFolder[];
   docs: ScrapDocument[];
@@ -35,6 +36,7 @@ export function FolderList({
   onSelect: (s: FolderSelection) => void;
   onSave: (d: Draft) => void;
   onDeleteFolder: (id: string) => void;
+  view?: FolderView;
 }) {
   const [draft, setDraft] = useState<Draft | null>(null);
   const known = new Set(folders.map((f) => f.id));
@@ -42,43 +44,44 @@ export function FolderList({
 
   const row = (active: boolean) =>
     cn(
-      "flex min-h-10 w-full shrink-0 items-center gap-2.5 rounded-xl px-3 text-left text-[14px] transition-colors lg:w-full",
+      "flex min-h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-left text-[14px] transition-colors",
+      view === "sidebar" ? "w-full" : "w-auto",
       active ? "bg-accent font-medium text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
     );
 
   return (
-    <nav aria-label="Folders" className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
-      <button type="button" className={cn(row(selected === "all"), "w-auto")} onClick={() => onSelect("all")}>
+    <nav aria-label="Folders" className={cn("flex gap-1", view === "sidebar" ? "flex-col" : "overflow-x-auto pb-1")}>
+      <button type="button" aria-pressed={selected === "all"} className={row(selected === "all")} onClick={() => onSelect("all")}>
         <FileText className="h-4 w-4" /> <span className="flex-1 whitespace-nowrap">All pages</span>
         <span className="text-[12px] text-muted-foreground">{docs.length}</span>
       </button>
-      <button type="button" className={cn(row(selected === "unfiled"), "w-auto")} onClick={() => onSelect("unfiled")}>
+      <button type="button" aria-pressed={selected === "unfiled"} className={row(selected === "unfiled")} onClick={() => onSelect("unfiled")}>
         <Inbox className="h-4 w-4" /> <span className="flex-1 whitespace-nowrap">Unfiled</span>
         <span className="text-[12px] text-muted-foreground">{unfiled}</span>
       </button>
 
-      <div className="hidden px-3 pt-4 pb-1 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase lg:block">
+      <div className={cn("px-3 pt-4 pb-1 text-[11px] font-semibold text-muted-foreground uppercase", view === "compact" && "hidden")}>
         Folders
       </div>
 
       {folders.map((f) => {
         const count = docs.filter((d) => d.folder_id === f.id).length;
         return (
-          <div key={f.id} className={cn("group/folder relative flex shrink-0 items-center", row(selected === f.id), "w-auto p-0 lg:w-full")}>
-            <button type="button" onClick={() => onSelect(f.id)} className="flex min-h-10 flex-1 items-center gap-2.5 pl-3 text-left">
+          <div key={f.id} className={cn("group/folder relative flex shrink-0 items-center", row(selected === f.id), "p-0")}>
+            <button type="button" aria-pressed={selected === f.id} onClick={() => onSelect(f.id)} className="flex min-h-10 min-w-0 flex-1 items-center gap-2.5 pl-3 text-left">
               <Folder
                 className="h-4 w-4"
                 style={{ color: `var(--folder-${f.color})`, fill: `color-mix(in oklab, var(--folder-${f.color}) 22%, transparent)` }}
               />
               <span className="max-w-[10rem] truncate whitespace-nowrap">{f.name}</span>
             </button>
-            <span className="pr-1 text-[12px] text-muted-foreground group-hover/folder:hidden lg:pr-3">{count}</span>
+            <span className="px-2 text-[12px] text-muted-foreground">{count}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   aria-label={`${f.name} options`}
-                  className="mr-1 hidden h-7 w-7 items-center justify-center rounded-full hover:bg-background/60 group-hover/folder:flex data-[state=open]:flex [@media(hover:none)]:flex"
+                  className="mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full opacity-0 hover:bg-background/60 group-hover/folder:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
