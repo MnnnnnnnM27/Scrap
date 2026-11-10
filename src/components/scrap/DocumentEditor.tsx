@@ -94,6 +94,9 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       });
   };
   const [counts, setCounts] = useState({ words: 0, chars: 0 });
+  const [zen, setZen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
+  useEffect(() => { const t = () => setZen(v => { toast(v ? "Zen focus off" : "Zen focus on", { duration: 1200 }); return !v; }); window.addEventListener("scrap:zen", t); return () => window.removeEventListener("scrap:zen", t); }, []);
   const remoteApplying = useRef(false);
   const broadcastRef = useRef<((json: unknown) => void) | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -386,7 +389,7 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
             placeholder="Untitled"
             className="mb-6 w-full bg-transparent font-[family-name:var(--font-doc)] text-3xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground/60"
           />
-          <div className="scrap-editor" spellCheck={settings.spellcheck}>
+          <div className={cn("scrap-editor", zen && "zen")} spellCheck={settings.spellcheck}>
             <EditorContent editor={editor} />
           </div>
           {settings.show_cursors &&
@@ -410,9 +413,28 @@ function Editor({ doc, kind }: { doc: ScrapDocument; kind: DocKind }) {
       {split && <SplitPane primaryId={doc.id} onClose={() => setSplit(false)} />}
 
       {settings.show_word_count && (
-        <p className="no-print fixed bottom-4 left-1/2 z-20 -translate-x-1/2 text-[11px] tracking-wide text-muted-foreground">
-          {counts.words} words · {counts.chars} characters
-        </p>
+        <div className="no-print fixed right-4 bottom-4 z-20 flex flex-col items-end gap-2">
+          {statsOpen && (
+            <div className="glass animate-in fade-in slide-in-from-bottom-1 w-48 rounded-2xl border border-border p-3 text-[12px] shadow-lg">
+              {[
+                ["Words", counts.words],
+                ["Characters", counts.chars],
+                ["Reading time", `${Math.max(1, Math.round(counts.words / 238))} min`],
+                ["Speaking time", `${Math.max(1, Math.round(counts.words / 140))} min`],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between py-0.5"><span className="text-muted-foreground">{k}</span><span className="tabular-nums">{v}</span></div>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setStatsOpen(v => !v)}
+            aria-label="Document stats"
+            className="glass rounded-full border border-border px-3 py-1 text-[11px] tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {counts.words} words · {Math.max(1, Math.round(counts.words / 238))} min
+          </button>
+        </div>
       )}
 
       {editor && slash && (

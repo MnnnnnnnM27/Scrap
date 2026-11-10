@@ -6,3 +6,8 @@
 - [x] Wire global file drop, dictation, and editable split view.
 - [x] Add flat Dock icons, manifest, and guarded published offline launch.
 - [ ] Verify signed-in imports, dictation, split view, and offline save/reconnect — blocked until the user signs into the preview; account session minting is unavailable.
+# v4.2
+- [x] Word/time pill, Zen focus (Alt+Z), refined + new accents, SF Pro only.
+# Later
+- [ ] v4.3: flat vs glass surfaces toggle; declutter Pages screen.
+- [ ] v5: Speak to Gemini shortcut; Author mode (books).

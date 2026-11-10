@@ -18,7 +18,7 @@ export type FolderColor = "graphite" | "marine" | "emerald" | "amber" | "coral" 
 export type ScrapFolder = { id: string; user_id: string; name: string; color: FolderColor; position: number; created_at: string };
 export const FOLDER_COLORS: FolderColor[] = ["graphite", "marine", "emerald", "amber", "coral", "plum"];
 
-export type AccentTheme = "dark-grey" | "blue" | "green" | "amber" | "rose" | "violet";
+export type AccentTheme = "dark-grey" | "blue" | "green" | "amber" | "rose" | "violet" | "teal" | "terracotta" | "sage";
 export type ColorMode = "light" | "dark";
 export type DocFont = "default" | "cursive" | "switzer" | "google-sans" | "literata";
 export type ToolbarSide = "left" | "right";
@@ -56,7 +56,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   canvas_width: "standard",
   show_ask_gemini: true,
   ghost_autocomplete: true,
-  show_word_count: false,
+  show_word_count: true,
   card_previews: false,
   typeliner: false,
   spellcheck: true,
@@ -74,8 +74,11 @@ export const DEFAULT_SETTINGS: UserSettings = {
 export const ACCENT_THEMES: { key: AccentTheme; label: string }[] = [
   { key: "dark-grey", label: "Dark Grey" },
   { key: "blue", label: "Blue" },
+  { key: "teal", label: "Teal" },
   { key: "green", label: "Green" },
+  { key: "sage", label: "Sage" },
   { key: "amber", label: "Amber" },
+  { key: "terracotta", label: "Terracotta" },
   { key: "rose", label: "Rose" },
   { key: "violet", label: "Violet" },
 ];
