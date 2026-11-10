@@ -6,7 +6,7 @@
 
 /*
  * Scrap design system.
- * App UI font: Instrument Sans. Document fonts are user-selectable.
+ * UI and documents use the system SF Pro stack.
  * Accent ("theme") colors live in --brand and adapt between light and dark
  * so the same theme stays visible on both backgrounds.
  * The brand color is NEVER applied to the writing canvas.
