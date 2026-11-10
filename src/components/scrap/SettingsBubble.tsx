@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Check, LayoutList, LogOut, Moon, PanelLeft, PanelRight, Settings, Sun, Trash2 } from "lucide-react";
+import { LayoutList, LogOut, Moon, PanelLeft, PanelRight, Settings, Sun, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/lib/settings";
