@@ -17,7 +17,6 @@ import type { ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSettings } from "@/lib/settings";
 import type { DocKind } from "@/lib/scrap-types";
-import { PAGE_FONT_FAMILIES } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
 
 const SIZES = ["14px", "16px", "18px", "20px", "24px", "32px"];
@@ -124,25 +123,6 @@ export function Toolbar({ editor, kind }: { editor: Editor; kind: DocKind }) {
         >
           {kind === "page" && (
             <>
-              <div className="space-y-1">
-                <p className="px-1 text-[11px] tracking-wide text-muted-foreground uppercase">Font</p>
-                <select
-                  aria-label="Font"
-                  value={s.font}
-                  onChange={(e) =>
-                    e.target.value
-                      ? c().setFontFamily(e.target.value).run()
-                      : c().unsetFontFamily().run()
-                  }
-                  className="w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm outline-none"
-                >
-                  {PAGE_FONT_FAMILIES.map((f) => (
-                    <option key={f.label} value={f.value}>
-                      {f.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <div className="space-y-1">
                 <p className="px-1 text-[11px] tracking-wide text-muted-foreground uppercase">Size</p>
                 <select

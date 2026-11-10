@@ -69,7 +69,7 @@
   --folder-plum: oklch(0.58 0.17 300);
   --radius: 0.875rem;
   --font-ui:
-    "Instrument Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
   --font-doc: var(--font-ui);
 
   --background: oklch(0.985 0.002 250);
@@ -151,99 +151,118 @@
 /* ---------- Accent themes (adaptive light/dark) ---------- */
 
 [data-accent="dark-grey"] {
-  --brand: oklch(0.36 0.008 265);
-  --brand-foreground: oklch(0.985 0.002 250);
-  --brand-soft: oklch(0.36 0.008 265 / 10%);
+  --brand: oklch(0.34 0.006 265);
+  --brand-foreground: oklch(0.99 0.002 250);
+  --brand-soft: oklch(0.34 0.006 265 / 12%);
 }
 .dark [data-accent="dark-grey"],
 .dark[data-accent="dark-grey"] {
-  /* stays "the same theme", lightened so it reads against the dark canvas */
-  --brand: oklch(0.82 0.006 260);
-  --brand-foreground: oklch(0.2 0.007 265);
-  --brand-soft: oklch(0.82 0.006 260 / 16%);
+  --brand: oklch(0.84 0.005 260);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.84 0.005 260 / 18%);
 }
 
 [data-accent="blue"] {
-  --brand: oklch(0.55 0.17 253);
+  --brand: oklch(0.58 0.19 255);
   --brand-foreground: oklch(0.99 0.002 250);
-  --brand-soft: oklch(0.55 0.17 253 / 12%);
+  --brand-soft: oklch(0.58 0.19 255 / 12%);
 }
 .dark [data-accent="blue"],
 .dark[data-accent="blue"] {
-  --brand: oklch(0.74 0.14 253);
-  --brand-foreground: oklch(0.18 0.02 260);
-  --brand-soft: oklch(0.74 0.14 253 / 18%);
+  --brand: oklch(0.72 0.15 252);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.72 0.15 252 / 18%);
 }
 
 [data-accent="green"] {
-  --brand: oklch(0.52 0.13 158);
+  --brand: oklch(0.58 0.14 152);
   --brand-foreground: oklch(0.99 0.002 250);
-  --brand-soft: oklch(0.52 0.13 158 / 12%);
+  --brand-soft: oklch(0.58 0.14 152 / 12%);
 }
 .dark [data-accent="green"],
 .dark[data-accent="green"] {
-  --brand: oklch(0.76 0.13 158);
-  --brand-foreground: oklch(0.17 0.03 160);
-  --brand-soft: oklch(0.76 0.13 158 / 18%);
+  --brand: oklch(0.76 0.15 150);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.76 0.15 150 / 18%);
 }
 
 [data-accent="amber"] {
-  --brand: oklch(0.63 0.15 62);
+  --brand: oklch(0.70 0.16 65);
   --brand-foreground: oklch(0.99 0.002 250);
-  --brand-soft: oklch(0.63 0.15 62 / 14%);
+  --brand-soft: oklch(0.70 0.16 65 / 12%);
 }
 .dark [data-accent="amber"],
 .dark[data-accent="amber"] {
-  --brand: oklch(0.79 0.14 70);
-  --brand-foreground: oklch(0.2 0.04 60);
-  --brand-soft: oklch(0.79 0.14 70 / 18%);
+  --brand: oklch(0.80 0.15 72);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.80 0.15 72 / 18%);
 }
 
 [data-accent="rose"] {
-  --brand: oklch(0.58 0.18 14);
+  --brand: oklch(0.60 0.20 15);
   --brand-foreground: oklch(0.99 0.002 250);
-  --brand-soft: oklch(0.58 0.18 14 / 12%);
+  --brand-soft: oklch(0.60 0.20 15 / 12%);
 }
 .dark [data-accent="rose"],
 .dark[data-accent="rose"] {
-  --brand: oklch(0.76 0.14 14);
-  --brand-foreground: oklch(0.2 0.03 14);
-  --brand-soft: oklch(0.76 0.14 14 / 18%);
+  --brand: oklch(0.74 0.16 12);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.74 0.16 12 / 18%);
 }
 
 [data-accent="violet"] {
-  --brand: oklch(0.54 0.18 295);
+  --brand: oklch(0.55 0.19 292);
   --brand-foreground: oklch(0.99 0.002 250);
-  --brand-soft: oklch(0.54 0.18 295 / 12%);
+  --brand-soft: oklch(0.55 0.19 292 / 12%);
 }
 .dark [data-accent="violet"],
 .dark[data-accent="violet"] {
-  --brand: oklch(0.76 0.13 295);
-  --brand-foreground: oklch(0.19 0.03 295);
-  --brand-soft: oklch(0.76 0.13 295 / 18%);
+  --brand: oklch(0.74 0.14 292);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.74 0.14 292 / 18%);
 }
 
-/* ---------- Document fonts ---------- */
+[data-accent="teal"] {
+  --brand: oklch(0.60 0.10 200);
+  --brand-foreground: oklch(0.99 0.002 250);
+  --brand-soft: oklch(0.60 0.10 200 / 12%);
+}
+.dark [data-accent="teal"],
+.dark[data-accent="teal"] {
+  --brand: oklch(0.78 0.11 200);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.78 0.11 200 / 18%);
+}
 
-[data-doc-font="default"] {
-  --font-doc:
-    ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+[data-accent="terracotta"] {
+  --brand: oklch(0.60 0.14 40);
+  --brand-foreground: oklch(0.99 0.002 250);
+  --brand-soft: oklch(0.60 0.14 40 / 12%);
 }
-[data-doc-font="switzer"] {
-  --font-doc: "Outfit", ui-sans-serif, sans-serif;
+.dark [data-accent="terracotta"],
+.dark[data-accent="terracotta"] {
+  --brand: oklch(0.75 0.12 42);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.75 0.12 42 / 18%);
 }
-[data-doc-font="google-sans"] {
-  --font-doc: "Google Sans", ui-sans-serif, sans-serif;
+
+[data-accent="sage"] {
+  --brand: oklch(0.60 0.06 145);
+  --brand-foreground: oklch(0.99 0.002 250);
+  --brand-soft: oklch(0.60 0.06 145 / 12%);
 }
-[data-doc-font="literata"] {
-  --font-doc: "Literata", ui-serif, Georgia, serif;
+.dark [data-accent="sage"],
+.dark[data-accent="sage"] {
+  --brand: oklch(0.78 0.07 145);
+  --brand-foreground: oklch(0.18 0.01 260);
+  --brand-soft: oklch(0.78 0.07 145 / 18%);
 }
-[data-doc-font="cursive"] {
-  --font-doc: "Caveat", cursive;
-}
-[data-doc-font="cursive"] .scrap-editor .ProseMirror {
-  font-size: 1.3em;
-}
+
+/* ---------- Zen focus ---------- */
+.scrap-editor.zen .ProseMirror > * { opacity: 0.32; transition: opacity 260ms ease; }
+.scrap-editor.zen .ProseMirror > .has-focus,
+.scrap-editor.zen .ProseMirror:not(:focus) > * { opacity: 1; }
+.scrap-editor.zen .ProseMirror:not(:focus-within) > * { opacity: 1; }
 
 @layer base {
   * {

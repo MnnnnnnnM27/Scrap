@@ -6,10 +6,8 @@ import { useSettings } from "@/lib/settings";
 import {
   ACCENT_THEMES,
   CANVAS_WIDTHS,
-  DOC_FONTS,
   type AccentTheme,
   type ColorMode,
-  type DocFont,
   type ToolbarSide,
   type UserSettings,
 } from "@/lib/scrap-types";
@@ -20,12 +18,15 @@ import { cn } from "@/lib/utils";
 import { ShortcutSettings } from "./ShortcutSettings";
 
 const ACCENT_SWATCH: Record<AccentTheme, string> = {
-  "dark-grey": "oklch(0.36 0.008 265)",
-  blue: "oklch(0.55 0.17 253)",
-  green: "oklch(0.52 0.13 158)",
-  amber: "oklch(0.63 0.15 62)",
-  rose: "oklch(0.58 0.18 14)",
-  violet: "oklch(0.54 0.18 295)",
+  "dark-grey": "oklch(0.34 0.006 265)",
+  "blue": "oklch(0.58 0.19 255)",
+  "green": "oklch(0.58 0.14 152)",
+  "amber": "oklch(0.70 0.16 65)",
+  "rose": "oklch(0.60 0.20 15)",
+  "violet": "oklch(0.55 0.19 292)",
+  "teal": "oklch(0.60 0.10 200)",
+  "terracotta": "oklch(0.60 0.14 40)",
+  "sage": "oklch(0.60 0.06 145)",
 };
 
 function Toggle({
@@ -78,7 +79,7 @@ export function SettingsBubble() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-[340px] overflow-y-auto sm:w-[380px]">
           <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 text-[17px]">Settings <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">v4.0</span></SheetTitle>
+            <SheetTitle className="flex items-center gap-2 text-[17px]">Settings <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">v4.2</span></SheetTitle>
           </SheetHeader>
 
           <div className="space-y-8 px-4 pb-10">
@@ -129,29 +130,6 @@ export function SettingsBubble() {
               <p className="text-xs text-muted-foreground">Adapts to light and dark.</p>
             </Group>
 
-            <Group title="Writing font">
-              <div className="space-y-1.5">
-                {DOC_FONTS.map((font) => (
-                  <button
-                    key={font.key}
-                    type="button"
-                    onClick={() => set({ font: font.key as DocFont })}
-                    className={cn(
-                      "flex w-full items-center justify-between rounded-xl border px-3.5 py-2.5 text-left transition-colors",
-                      settings.font === font.key
-                        ? "border-brand bg-brand-soft"
-                        : "border-border hover:bg-accent",
-                    )}
-                  >
-                    <span style={{ fontFamily: font.sample }} className="text-[15px]">
-                      {font.label}
-                    </span>
-                    {settings.font === font.key && <Check className="h-4 w-4 text-brand" />}
-                  </button>
-                ))}
-              </div>
-            </Group>
-
             <Group title="Editor">
               <div className="flex rounded-full bg-muted p-1">
                 {(["left", "right"] as ToolbarSide[]).map((sideOpt) => (
@@ -195,7 +173,7 @@ export function SettingsBubble() {
               </div>
 
               <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                <Toggle label="Word count" hint="Quiet counter at the bottom." checked={settings.show_word_count} onChange={(v) => set({ show_word_count: v })} />
+                <Toggle label="Word count" hint="Words and reading time." checked={settings.show_word_count} onChange={(v) => set({ show_word_count: v })} />
                 <Toggle label="TypeLiner" hint="Keeps your line centered." checked={settings.typeliner} onChange={(v) => set({ typeliner: v })} />
                 <Toggle label="/ commands" hint="Type / for tables, charts, more." checked={settings.slash_commands} onChange={(v) => set({ slash_commands: v })} />
                 <Toggle label="Spellcheck" checked={settings.spellcheck} onChange={(v) => set({ spellcheck: v })} />
