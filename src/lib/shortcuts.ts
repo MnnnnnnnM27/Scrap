@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type ShortcutAction = "newNote" | "newPage" | "search" | "split" | "voice" | "home" | "research";
+export type ShortcutAction = "newNote" | "newPage" | "search" | "split" | "voice" | "home" | "research" | "zen";
 
 export const SHORTCUT_LABELS: Record<ShortcutAction, string> = {
   newNote: "New note",
@@ -10,6 +10,7 @@ export const SHORTCUT_LABELS: Record<ShortcutAction, string> = {
   voice: "Dictate",
   home: "Go home",
   research: "Research",
+  zen: "Zen focus",
 };
 
 export type Shortcuts = Record<ShortcutAction, string> & { slashTrigger: string };
@@ -22,6 +23,7 @@ export const DEFAULT_SHORTCUTS: Shortcuts = {
   voice: "Alt+D",
   home: "Alt+H",
   research: "Alt+R",
+  zen: "Alt+Z",
   slashTrigger: "/",
 };
 

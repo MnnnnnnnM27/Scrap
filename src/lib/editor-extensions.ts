@@ -5,6 +5,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import Image from "@tiptap/extension-image";
+import { Focus } from "@tiptap/extensions";
 import type { DocKind } from "./scrap-types";
 
 export function buildExtensions(kind: DocKind, placeholder = true) {
@@ -24,6 +25,7 @@ export function buildExtensions(kind: DocKind, placeholder = true) {
     TableHeader,
     TableCell,
     Image.configure({ allowBase64: true }),
+    Focus.configure({ className: "has-focus", mode: "shallowest" }),
   ];
   if (placeholder) {
     base.push(

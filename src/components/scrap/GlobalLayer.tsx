@@ -151,6 +151,10 @@ export function GlobalLayer() {
         if (/^\/(?:note|page)\//.test(path)) window.dispatchEvent(new Event("scrap:split"));
         else toast("Open a document to use split view.");
       }
+      else if (action === "zen") {
+        if (/^\/(?:note|page)\//.test(path)) window.dispatchEvent(new Event("scrap:zen"));
+        else toast("Open a document to use Zen focus.");
+      }
       else if (action === "voice") void toggleRef.current();
     };
     window.addEventListener("keydown", h);
