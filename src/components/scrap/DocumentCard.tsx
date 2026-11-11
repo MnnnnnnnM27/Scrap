@@ -18,6 +18,7 @@ import {
 import type { ScrapDocument, ScrapFolder } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/lib/settings";
 
 function relativeDate(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -45,6 +46,7 @@ export function DocumentCard({
   onMove?: ((docId: string, folderId: string | null) => void) | undefined;
 }) {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const qc = useQueryClient();
   const people = useCollabMap().get(doc.id) ?? [];
   const isOwner = !user || doc.user_id === user.id;
@@ -79,7 +81,7 @@ export function DocumentCard({
         params={{ id: doc.id }}
         className={cn(
           "h-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none",
-          preview ? "block rounded-lg border border-border bg-card p-5 shadow-lift hover:border-brand/40" : doc.kind === "page"
+          preview ? "block rounded-lg border border-border bg-card p-5 shadow-lift hover:border-brand/40" : doc.kind === "page" && settings.home_style === "v4.3"
             ? "flex min-h-16 items-center gap-4 rounded-lg py-4 pr-12 pl-3 hover:bg-accent/50"
             : "flex min-h-12 items-center gap-3 rounded-full border border-border bg-card py-2.5 pr-12 pl-5 hover:border-brand/40",
         )}

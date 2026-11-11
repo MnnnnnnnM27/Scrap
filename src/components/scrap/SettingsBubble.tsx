@@ -199,6 +199,25 @@ export function SettingsBubble() {
 
             <Group title="Home">
               <div>
+                <p className="mb-2 text-[15px]">Home style</p>
+                <div className="flex rounded-full bg-muted p-1" role="group" aria-label="Home style">
+                  {(["v4.2", "v4.3"] as const).map((style) => (
+                    <Button
+                      key={style}
+                      variant="ghost"
+                      aria-pressed={settings.home_style === style}
+                      onClick={() => set({ home_style: style })}
+                      className={cn("h-10 flex-1 rounded-full", settings.home_style === style
+                        ? "bg-brand text-brand-foreground hover:bg-brand hover:text-brand-foreground"
+                        : "text-muted-foreground")}
+                    >
+                      {style === "v4.2" ? <Layers /> : <LayoutList />}
+                      {style}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <p className="mb-2 text-[15px]">Folder view</p>
                 <div className="flex rounded-full bg-muted p-1" role="group" aria-label="Folder view">
                   {(["sidebar", "compact"] as const).map((layout) => (

@@ -25,6 +25,7 @@ export type ToolbarSide = "left" | "right";
 export type CanvasWidth = "narrow" | "standard" | "wide";
 export type FolderView = "sidebar" | "compact";
 export type SurfaceMode = "glass" | "flat";
+export type HomeStyle = "v4.2" | "v4.3";
 
 export type UserSettings = {
   font: DocFont;
@@ -43,6 +44,7 @@ export type UserSettings = {
   pages_only: boolean;
   folder_view: FolderView;
   surface_mode: SurfaceMode;
+  home_style: HomeStyle;
   username: string;
   collab_color: string;
   show_cursors: boolean;
@@ -67,6 +69,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   pages_only: false,
   folder_view: "compact",
   surface_mode: "glass",
+  home_style: "v4.3",
   username: "",
   collab_color: "#3b82f6",
   show_cursors: true,
