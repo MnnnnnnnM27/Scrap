@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ScrapDocument, ScrapFolder } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 function relativeDate(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -77,11 +78,13 @@ export function DocumentCard({
         to={doc.kind === "note" ? "/note/$id" : "/page/$id"}
         params={{ id: doc.id }}
         className={cn(
-          "block h-full border border-border bg-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/40 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none",
-          preview ? "rounded-2xl p-5 shadow-lift" : "flex items-center gap-3 rounded-full py-2.5 pr-12 pl-5",
+          "h-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none",
+          preview ? "block rounded-lg border border-border bg-card p-5 shadow-lift hover:border-brand/40" : doc.kind === "page"
+            ? "flex min-h-16 items-center gap-4 rounded-lg py-4 pr-12 pl-3 hover:bg-accent/50"
+            : "flex min-h-12 items-center gap-3 rounded-full border border-border bg-card py-2.5 pr-12 pl-5 hover:border-brand/40",
         )}
       >
-        <h3 className={cn("truncate text-[15px] font-semibold tracking-tight", preview && "pr-7")}>
+        <h3 className={cn("min-w-0 flex-1 truncate text-[15px] font-medium", preview && "pr-7")}>
           {doc.title || "Untitled"}
         </h3>
         {preview && (
@@ -91,7 +94,7 @@ export function DocumentCard({
         )}
         <p
           className={cn(
-            "text-[11px] tracking-wide text-muted-foreground uppercase",
+            "text-xs text-muted-foreground",
             preview ? "mt-3" : "ml-auto shrink-0",
           )}
         >
@@ -110,8 +113,9 @@ export function DocumentCard({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             aria-label="Options"
             className={cn(
               "absolute right-2.5 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-accent focus:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100",
@@ -119,7 +123,7 @@ export function DocumentCard({
             )}
           >
             <MoreHorizontal className="h-4 w-4" />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           {doc.kind === "page" && isOwner && (

@@ -305,7 +305,7 @@ html[data-surface="flat"] {
   --shadow-lift-value: none;
 }
 
-html[data-surface="flat"] :is([data-slot="dialog-content"], [data-slot="sheet-content"], [data-slot="popover-content"], [data-slot="dropdown-menu-content"]) {
+html[data-surface="flat"] :is([role="dialog"], [role="menu"], [data-radix-popper-content-wrapper] > div) {
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
