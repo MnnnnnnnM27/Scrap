@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SETTINGS, type UserSettings } from "./scrap-types";
 import { setFolderView, useFolderView } from "./folder-view";
 import { setSurfaceMode, useSurfaceMode } from "./surface-mode";
+import { setHomeStyle, useHomeStyle } from "./home-style";
 
 const STORAGE_KEY = "scrap.settings";
 
@@ -95,7 +96,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       void (async () => {
         const { data: auth } = await supabase.auth.getUser();
         if (!auth.user) return;
-        const { folder_view: _folderView, surface_mode: _surfaceMode, ...cloudSettings } = next;
+        const { folder_view: _folderView, surface_mode: _surfaceMode, home_style: _homeStyle, ...cloudSettings } = next;
         await supabase
           .from("user_settings")
           .upsert({ user_id: auth.user.id, ...cloudSettings }, { onConflict: "user_id" });
@@ -113,11 +114,13 @@ export function useSettings() {
   const context = useContext(SettingsContext);
   const folderView = useFolderView();
   const surfaceMode = useSurfaceMode();
+  const homeStyle = useHomeStyle();
   const update = useCallback((patch: Partial<UserSettings>) => {
     if (patch.folder_view) setFolderView(patch.folder_view);
     if (patch.surface_mode) setSurfaceMode(patch.surface_mode);
-    const { folder_view: _folderView, surface_mode: _surfaceMode, ...remaining } = patch;
+    if (patch.home_style) setHomeStyle(patch.home_style);
+    const { folder_view: _folderView, surface_mode: _surfaceMode, home_style: _homeStyle, ...remaining } = patch;
     if (Object.keys(remaining).length) context.update(remaining);
   }, [context.update]);
-  return { settings: { ...context.settings, folder_view: folderView, surface_mode: surfaceMode }, update };
+  return { settings: { ...context.settings, folder_view: folderView, surface_mode: surfaceMode, home_style: homeStyle }, update };
 }

@@ -64,6 +64,7 @@ function Home() {
 
   const { settings } = useSettings();
   const preview = settings.card_previews;
+  const classic = settings.home_style === "v4.2";
   const { data: folders = [] } = useQuery({ queryKey: ["folders"], queryFn: listFolders });
   const refreshAll = () => {
     void queryClient.invalidateQueries({ queryKey: ["documents"] });
@@ -147,8 +148,8 @@ function Home() {
         <Sparkle className="h-5 w-5" />
       </Link>
 
-      <div className="mx-auto max-w-6xl px-5 pt-24 sm:px-12">
-        <header className="mb-10">
+      <div data-home-style={settings.home_style} className={cn("mx-auto px-5 pt-24", classic ? "max-w-5xl sm:px-8" : "max-w-6xl sm:px-12")}>
+        <header className={classic ? "mb-7" : "mb-10"}>
           <h1 className="sr-only">Scrap</h1>
           {view !== "all" && !appSettings.pages_only ? (
             <Link to="/" aria-label="Home" title="Home" className="inline-block rounded-xl text-brand transition-transform hover:scale-105 active:scale-95">
@@ -159,7 +160,7 @@ function Home() {
           )}
         </header>
 
-        <div className="mb-10 flex flex-wrap items-center gap-3 sm:gap-4">
+        <div className={cn("flex flex-wrap items-center gap-3 sm:gap-4", classic ? "mb-7" : "mb-10")}>
           {!appSettings.pages_only && <ViewSwitcher view={view} onChange={setView} />}
           {view !== "all" && (
             <Button
@@ -171,7 +172,7 @@ function Home() {
               <Plus className="h-4 w-4" /> New
             </Button>
           )}
-          <div className="relative order-last w-full sm:order-none sm:ml-auto sm:w-64">
+          <div className={cn("relative order-last w-full sm:order-none sm:ml-auto", classic ? "sm:w-80" : "sm:w-64")}>
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="search"
@@ -179,7 +180,7 @@ function Home() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search"
-              className="h-10 w-full rounded-lg border border-transparent bg-muted/60 pr-3 pl-10 text-sm outline-none transition-colors focus:border-brand focus:bg-card"
+              className={cn("h-10 w-full pr-3 pl-10 text-sm outline-none transition-colors focus:border-brand focus:bg-card", classic ? "glass rounded-full border border-border" : "rounded-lg border border-transparent bg-muted/60")}
             />
           </div>
           <Link
@@ -195,7 +196,7 @@ function Home() {
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (
-          <div className="space-y-14">
+          <div className={classic ? "space-y-9" : "space-y-14"}>
             {view !== "pages" && (
               <Section
                 preview={preview}
@@ -208,7 +209,7 @@ function Home() {
               />
             )}
             {view === "pages" && (
-              <div className={cn("flex flex-col gap-8", settings.folder_view === "sidebar" && "md:flex-row md:gap-12")}>
+              <div className={cn("flex flex-col", classic ? "gap-5" : "gap-8", settings.folder_view === "sidebar" && (classic ? "md:flex-row md:gap-8" : "md:flex-row md:gap-12"))}>
                 {settings.folder_view === "sidebar" && (
                   <div className="md:hidden">
                     <Button variant="ghost" onClick={() => setFoldersOpen(true)} className="rounded-full">
@@ -332,9 +333,11 @@ function Section({
   emptyLabel: string;
   onDelete: (id: string) => void;
 }) {
+  const { settings } = useSettings();
+  const classic = settings.home_style === "v4.2";
   return (
     <section id={id} className="scroll-mt-24">
-      <div className="mb-5 flex items-center gap-2.5 text-muted-foreground">
+      <div className={cn("flex items-center gap-2.5 text-muted-foreground", classic ? "mb-3" : "mb-5")}>
         {icon}
         <h2 className="min-w-0 break-words text-[15px] font-semibold text-foreground">{title}</h2>
         <span className="text-[13px] text-muted-foreground">{docs.length}</span>
@@ -344,7 +347,7 @@ function Section({
           {emptyLabel}
         </p>
       ) : (
-        <div className={preview ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : id === "pages" ? "divide-y divide-border/60" : "grid gap-3 sm:grid-cols-2"}>
+        <div className={preview ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : id === "pages" && !classic ? "divide-y divide-border/60" : "grid gap-3 sm:grid-cols-2"}>
           {docs.map((doc) => (
             <DocumentCard key={doc.id} doc={doc} preview={preview} folders={folders} onMove={onMove} onDelete={onDelete} />
           ))}

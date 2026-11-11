@@ -10,5 +10,6 @@
 - [x] Word/time pill, Zen focus (Alt+Z), refined + new accents, SF Pro only.
 # v4.3
 - [x] Add device-local Flat/Glass appearance choice and declutter Pages with quiet rows, compact search, and more whitespace; six tests and signed-in desktop/phone checks pass.
+- [ ] Add independent v4.2/v4.3 Home style choice and verify switching and persistence.
 # Later
 - [ ] v5: Speak to Gemini shortcut; Author mode (books).
