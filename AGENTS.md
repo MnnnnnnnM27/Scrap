@@ -17,3 +17,4 @@
 - Offline queue revisions increase per account even after acknowledgement; editor flushes sync staged entries instead of restaging stale patches to avoid overwriting newer edits.
 - Split view places its two editors explicitly in grid tracks while fixed tool wrappers use display: contents, preventing empty toolbar rows from displacing either editor.
 - Folder layout uses a dedicated device-local external store with same-tab and cross-tab notifications, independent of cloud settings loads; both layouts reuse one folder navigator so selection stays consistent without a schema change.
+- Surface appearance uses a device-local external store and global semantic surface tokens, independent of cloud settings; switching materials applies across screens without changing writing-canvas colors or requiring schema changes.

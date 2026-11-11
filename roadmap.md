@@ -9,5 +9,5 @@
 # v4.2
 - [x] Word/time pill, Zen focus (Alt+Z), refined + new accents, SF Pro only.
 # Later
-- [ ] v4.3: flat vs glass surfaces toggle; declutter Pages screen.
+- [ ] v4.3: add Flat/Glass appearance choice and declutter Pages; verify both appearances and folder layouts.
 - [ ] v5: Speak to Gemini shortcut; Author mode (books).
