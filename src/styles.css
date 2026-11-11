@@ -101,6 +101,7 @@
   --glass-border: oklch(0.55 0.01 260 / 16%);
   --shadow-glass-value: 0 1px 2px oklch(0.2 0.02 260 / 6%), 0 12px 32px oklch(0.2 0.02 260 / 10%);
   --shadow-lift-value: 0 1px 2px oklch(0.2 0.02 260 / 5%), 0 6px 20px oklch(0.2 0.02 260 / 7%);
+  --surface-filter: blur(22px) saturate(180%);
 
   --sidebar: oklch(0.985 0.002 250);
   --sidebar-foreground: oklch(0.18 0.006 265);
@@ -289,10 +290,25 @@
 
 @utility glass {
   background-color: var(--glass);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: var(--surface-filter);
+  backdrop-filter: var(--surface-filter);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-glass-value);
+}
+
+/* Flat surfaces retain contrast in either color mode without changing the canvas. */
+html[data-surface="flat"] {
+  --glass: var(--card);
+  --glass-border: var(--border);
+  --surface-filter: none;
+  --shadow-glass-value: none;
+  --shadow-lift-value: none;
+}
+
+html[data-surface="flat"] :is([role="dialog"], [role="menu"], [data-radix-popper-content-wrapper] > div) {
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 @utility canvas-surface {

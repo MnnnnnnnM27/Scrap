@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SETTINGS, type UserSettings } from "./scrap-types";
 import { setFolderView, useFolderView } from "./folder-view";
+import { setSurfaceMode, useSurfaceMode } from "./surface-mode";
 
 const STORAGE_KEY = "scrap.settings";
 
@@ -39,6 +40,11 @@ function applyToDom(settings: UserSettings) {
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
+  const surfaceMode = useSurfaceMode();
+
+  useEffect(() => {
+    document.documentElement.dataset['surface'] = surfaceMode;
+  }, [surfaceMode]);
 
   // hydrate from local storage on mount (avoids SSR mismatch)
   useEffect(() => {
@@ -89,7 +95,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       void (async () => {
         const { data: auth } = await supabase.auth.getUser();
         if (!auth.user) return;
-        const { folder_view: _folderView, ...cloudSettings } = next;
+        const { folder_view: _folderView, surface_mode: _surfaceMode, ...cloudSettings } = next;
         await supabase
           .from("user_settings")
           .upsert({ user_id: auth.user.id, ...cloudSettings }, { onConflict: "user_id" });
@@ -106,10 +112,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 export function useSettings() {
   const context = useContext(SettingsContext);
   const folderView = useFolderView();
+  const surfaceMode = useSurfaceMode();
   const update = useCallback((patch: Partial<UserSettings>) => {
     if (patch.folder_view) setFolderView(patch.folder_view);
-    const { folder_view: _folderView, ...remaining } = patch;
+    if (patch.surface_mode) setSurfaceMode(patch.surface_mode);
+    const { folder_view: _folderView, surface_mode: _surfaceMode, ...remaining } = patch;
     if (Object.keys(remaining).length) context.update(remaining);
   }, [context.update]);
-  return { settings: { ...context.settings, folder_view: folderView }, update };
+  return { settings: { ...context.settings, folder_view: folderView, surface_mode: surfaceMode }, update };
 }

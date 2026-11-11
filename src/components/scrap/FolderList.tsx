@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FOLDER_COLORS, type FolderColor, type FolderView, type ScrapDocument, type ScrapFolder } from "@/lib/scrap-types";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type Draft = { id?: string; name: string; color: FolderColor };
 export type FolderSelection = "all" | "unfiled" | string;
@@ -44,21 +45,21 @@ export function FolderList({
 
   const row = (active: boolean) =>
     cn(
-      "flex min-h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-left text-[14px] transition-colors",
+      "flex h-11 min-w-0 shrink-0 items-center justify-start gap-2.5 rounded-lg px-3 text-left text-sm transition-colors",
       view === "sidebar" ? "w-full" : "w-auto",
       active ? "bg-accent font-medium text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
     );
 
   return (
-    <nav aria-label="Folders" className={cn("flex gap-1", view === "sidebar" ? "flex-col" : "overflow-x-auto pb-1")}>
-      <button type="button" aria-pressed={selected === "all"} className={row(selected === "all")} onClick={() => onSelect("all")}>
+    <nav aria-label="Folders" className={cn("flex", view === "sidebar" ? "flex-col gap-1" : "flex-wrap gap-2 border-b border-border/60 pb-6")}>
+      <Button variant="ghost" aria-pressed={selected === "all"} className={row(selected === "all")} onClick={() => onSelect("all")}>
         <FileText className="h-4 w-4" /> <span className="flex-1 whitespace-nowrap">All pages</span>
         <span className="text-[12px] text-muted-foreground">{docs.length}</span>
-      </button>
-      <button type="button" aria-pressed={selected === "unfiled"} className={row(selected === "unfiled")} onClick={() => onSelect("unfiled")}>
+      </Button>
+      <Button variant="ghost" aria-pressed={selected === "unfiled"} className={row(selected === "unfiled")} onClick={() => onSelect("unfiled")}>
         <Inbox className="h-4 w-4" /> <span className="flex-1 whitespace-nowrap">Unfiled</span>
         <span className="text-[12px] text-muted-foreground">{unfiled}</span>
-      </button>
+      </Button>
 
       <div className={cn("px-3 pt-4 pb-1 text-[11px] font-semibold text-muted-foreground uppercase", view === "compact" && "hidden")}>
         Folders
@@ -68,23 +69,24 @@ export function FolderList({
         const count = docs.filter((d) => d.folder_id === f.id).length;
         return (
           <div key={f.id} className={cn("group/folder relative flex shrink-0 items-center", row(selected === f.id), "p-0")}>
-            <button type="button" aria-pressed={selected === f.id} onClick={() => onSelect(f.id)} className="flex min-h-10 min-w-0 flex-1 items-center gap-2.5 pl-3 text-left">
+            <Button variant="ghost" aria-pressed={selected === f.id} onClick={() => onSelect(f.id)} className="h-11 min-w-0 flex-1 justify-start gap-2.5 pr-0 pl-3 text-left hover:bg-transparent">
               <Folder
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
                 style={{ color: `var(--folder-${f.color})`, fill: `color-mix(in oklab, var(--folder-${f.color}) 22%, transparent)` }}
               />
-              <span className="max-w-[10rem] truncate whitespace-nowrap">{f.name}</span>
-            </button>
+              <span className="max-w-[10rem] truncate">{f.name}</span>
+            </Button>
             <span className="px-2 text-[12px] text-muted-foreground">{count}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="icon"
                   aria-label={`${f.name} options`}
                   className="mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full opacity-0 hover:bg-background/60 group-hover/folder:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
                 >
                   <MoreHorizontal className="h-4 w-4" />
-                </button>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuItem onSelect={() => setDraft({ id: f.id, name: f.name, color: f.color })}>
@@ -100,13 +102,13 @@ export function FolderList({
         );
       })}
 
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={() => setDraft({ name: "", color: "marine" })}
-        className="flex min-h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-[14px] whitespace-nowrap text-brand transition-colors hover:bg-accent/60"
+        className="h-11 shrink-0 justify-start gap-2.5 rounded-lg px-3 text-sm text-brand hover:bg-accent/60 hover:text-brand"
       >
         <FolderPlus className="h-4 w-4" /> New folder
-      </button>
+      </Button>
 
       <Dialog open={!!draft} onOpenChange={(o) => !o && setDraft(null)}>
         <DialogContent className="max-w-sm rounded-3xl">
@@ -138,7 +140,9 @@ export function FolderList({
                 <span className="mb-2 block text-[13px] text-muted-foreground">Color</span>
                 <div className="flex gap-3">
                   {FOLDER_COLORS.map((c) => (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       key={c}
                       type="button"
                       aria-label={c}
@@ -156,12 +160,12 @@ export function FolderList({
             </form>
           )}
           <DialogFooter>
-            <button type="button" onClick={() => setDraft(null)} className="rounded-full px-4 py-2 text-sm text-muted-foreground hover:bg-accent">
+            <Button variant="ghost" onClick={() => setDraft(null)} className="rounded-full text-muted-foreground">
               Cancel
-            </button>
-            <button type="submit" form="folder-form" disabled={!draft?.name.trim()} className="rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-foreground disabled:opacity-40">
+            </Button>
+            <Button type="submit" form="folder-form" disabled={!draft?.name.trim()} className="rounded-full bg-brand text-brand-foreground hover:bg-brand/90">
               {draft?.id ? "Save" : "Create"}
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

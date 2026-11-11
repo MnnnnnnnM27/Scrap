@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LayoutList, LogOut, Moon, PanelLeft, PanelRight, Settings, Sun, Trash2 } from "lucide-react";
+import { Layers, LayoutList, LogOut, Moon, PanelLeft, PanelRight, Settings, Square, Sun, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/lib/settings";
@@ -79,12 +79,28 @@ export function SettingsBubble() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-[340px] overflow-y-auto sm:w-[380px]">
           <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 text-[17px]">Settings <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">v4.2</span></SheetTitle>
+            <SheetTitle className="flex items-center gap-2 text-[17px]">Settings <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">v4.3</span></SheetTitle>
           </SheetHeader>
 
           <div className="space-y-8 px-4 pb-10">
             <ShortcutSettings />
             <Group title="Appearance">
+              <div className="flex rounded-full bg-muted p-1" role="group" aria-label="Surface appearance">
+                {(["glass", "flat"] as const).map((mode) => (
+                  <Button
+                    key={mode}
+                    variant="ghost"
+                    aria-pressed={settings.surface_mode === mode}
+                    onClick={() => set({ surface_mode: mode })}
+                    className={cn("h-10 flex-1 rounded-full capitalize", settings.surface_mode === mode
+                      ? "bg-brand text-brand-foreground hover:bg-brand hover:text-brand-foreground"
+                      : "text-muted-foreground")}
+                  >
+                    {mode === "glass" ? <Layers /> : <Square />}
+                    {mode}
+                  </Button>
+                ))}
+              </div>
               <div className="flex rounded-full bg-muted p-1">
                 {(["light", "dark"] as ColorMode[]).map((mode) => (
                   <button
@@ -205,7 +221,7 @@ export function SettingsBubble() {
                 </div>
               </div>
               <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                <Toggle label="Card previews" hint="Off shows slim title-only pills." checked={settings.card_previews} onChange={(v) => set({ card_previews: v })} />
+                <Toggle label="Card previews" checked={settings.card_previews} onChange={(v) => set({ card_previews: v })} />
                 <Toggle label="Pages only" hint="Hides Notes. Home becomes Pages." checked={settings.pages_only} onChange={(v) => set({ pages_only: v })} />
               </div>
             </Group>

@@ -24,6 +24,7 @@ export type DocFont = "default" | "cursive" | "switzer" | "google-sans" | "liter
 export type ToolbarSide = "left" | "right";
 export type CanvasWidth = "narrow" | "standard" | "wide";
 export type FolderView = "sidebar" | "compact";
+export type SurfaceMode = "glass" | "flat";
 
 export type UserSettings = {
   font: DocFont;
@@ -41,6 +42,7 @@ export type UserSettings = {
   confirm_trash: boolean;
   pages_only: boolean;
   folder_view: FolderView;
+  surface_mode: SurfaceMode;
   username: string;
   collab_color: string;
   show_cursors: boolean;
@@ -64,6 +66,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   confirm_trash: false,
   pages_only: false,
   folder_view: "compact",
+  surface_mode: "glass",
   username: "",
   collab_color: "#3b82f6",
   show_cursors: true,
