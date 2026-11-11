@@ -290,8 +290,8 @@
 
 @utility glass {
   background-color: var(--glass);
-  backdrop-filter: var(--surface-filter);
   -webkit-backdrop-filter: var(--surface-filter);
+  backdrop-filter: var(--surface-filter);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-glass-value);
 }
@@ -307,8 +307,8 @@ html[data-surface="flat"] {
 
 html[data-surface="flat"] :is([role="dialog"], [role="menu"], [data-radix-popper-content-wrapper] > div) {
   box-shadow: none;
-  backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 @utility canvas-surface {
