@@ -42,10 +42,12 @@ export type Database = {
       }
       documents: {
         Row: {
+          book: Json | null
           collab_token: string | null
           content: Json
           created_at: string
           deleted_at: string | null
+          editing_seconds: number
           folder_id: string | null
           id: string
           kind: string
@@ -55,10 +57,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          book?: Json | null
           collab_token?: string | null
           content?: Json
           created_at?: string
           deleted_at?: string | null
+          editing_seconds?: number
           folder_id?: string | null
           id?: string
           kind: string
@@ -68,10 +72,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          book?: Json | null
           collab_token?: string | null
           content?: Json
           created_at?: string
           deleted_at?: string | null
+          editing_seconds?: number
           folder_id?: string | null
           id?: string
           kind?: string

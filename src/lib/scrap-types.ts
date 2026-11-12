@@ -12,7 +12,12 @@ export type ScrapDocument = {
   deleted_at: string | null;
   folder_id?: string | null;
   collab_token?: string | null;
+  book?: BookMetadata | null;
+  editing_seconds?: number;
 };
+
+export type BookMetadata = { author: string; subtitle: string; front_cover: string; back_cover: string; blurb: string; word_target: number };
+export const EMPTY_BOOK: BookMetadata = { author: "", subtitle: "", front_cover: "", back_cover: "", blurb: "", word_target: 10000 };
 
 export type FolderColor = "graphite" | "marine" | "emerald" | "amber" | "coral" | "plum";
 export type ScrapFolder = { id: string; user_id: string; name: string; color: FolderColor; position: number; created_at: string };

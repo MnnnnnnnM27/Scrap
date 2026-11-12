@@ -11,5 +11,9 @@
 # v4.3
 - [x] Add device-local Flat/Glass appearance choice and declutter Pages with quiet rows, compact search, and more whitespace; six tests and signed-in desktop/phone checks pass.
 - [ ] Add independent v4.2/v4.3 Home style choice and verify switching and persistence.
-# Later
-- [ ] v5: Speak to Gemini shortcut; Author mode (books).
+# v5
+- [ ] Spotlight search replaces Home search; global customizable shortcut.
+- [ ] Speak to Gemini with a customizable shortcut and spoken replies.
+- [ ] Author mode: books in Pages, covers, chapters, edit/read modes, page turning, writing target, new-book shortcut.
+- [ ] Replace Page reading/speaking estimates with persistent active editing time; test elapsed time.
+- [ ] Update Settings to v5 and verify signed-in desktop/mobile flows.

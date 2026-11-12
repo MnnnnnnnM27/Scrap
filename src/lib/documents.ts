@@ -71,7 +71,7 @@ export async function getDocument(id: string): Promise<ScrapDocument | null> {
 
 export async function createDocument(
   kind: DocKind,
-  init?: { title: string; content: Json; plain_text: string },
+  init?: { title?: string; content?: Json; plain_text?: string; book?: Json },
 ): Promise<ScrapDocument> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error("Not signed in");
@@ -83,6 +83,7 @@ export async function createDocument(
       title: init?.title ?? "",
       content: init?.content ?? EMPTY_DOC,
       plain_text: init?.plain_text ?? "",
+      book: init?.book ?? null,
     })
     .select("*")
     .single();

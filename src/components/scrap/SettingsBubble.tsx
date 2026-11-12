@@ -79,7 +79,7 @@ export function SettingsBubble() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-[340px] overflow-y-auto sm:w-[380px]">
           <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 text-[17px]">Settings <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">v4.3</span></SheetTitle>
+            <SheetTitle className="flex items-center gap-2 text-[17px]">Settings <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">v5</span></SheetTitle>
           </SheetHeader>
 
           <div className="space-y-8 px-4 pb-10">
@@ -189,7 +189,7 @@ export function SettingsBubble() {
               </div>
 
               <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                <Toggle label="Word count" hint="Words and reading time." checked={settings.show_word_count} onChange={(v) => set({ show_word_count: v })} />
+                <Toggle label="Word count" hint="Words and editing time." checked={settings.show_word_count} onChange={(v) => set({ show_word_count: v })} />
                 <Toggle label="TypeLiner" hint="Keeps your line centered." checked={settings.typeliner} onChange={(v) => set({ typeliner: v })} />
                 <Toggle label="/ commands" hint="Type / for tables, charts, more." checked={settings.slash_commands} onChange={(v) => set({ slash_commands: v })} />
                 <Toggle label="Spellcheck" checked={settings.spellcheck} onChange={(v) => set({ spellcheck: v })} />

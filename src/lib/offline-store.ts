@@ -1,7 +1,7 @@
 import type { Json } from "@/integrations/supabase/types";
 import type { ScrapDocument } from "./scrap-types";
 
-export type SavePatch = { title?: string; content?: Json; plain_text?: string };
+export type SavePatch = { title?: string; content?: Json; plain_text?: string; book?: Json; editing_seconds?: number };
 type Entry = { patch: SavePatch; revision: number };
 let account: string | null = null;
 export function setOfflineAccount(id: string | null) { account = id; }
