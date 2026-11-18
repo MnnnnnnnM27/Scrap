@@ -1,6 +1,6 @@
 # Scrap
 
-Build a minimal, clean note-and-writing web app called Scrap, heavily inspired by the Mac app "Minimal Notes": no clutter, only the tools you actually need, fast, and beautiful. Full customization, but nothing overwhelming.
+A minimal, clean note-and-writing web app called Scrap, heavily inspired by the Mac app "Minimal Notes": no clutter, only the tools you actually need, fast, and beautiful. Full customization, but nothing overwhelming.
 
 ## CORE STRUCTURE — two content types, three modes
 
