@@ -82,7 +82,7 @@ Right-aligned, in this exact order left → right:
 
 - NO checklists (Notes-only tool) — Pages is for prose.
 
-## AI (use Lovable's built-in AI connector — Connectors → AI — default model Gemini, no API keys needed)
+## AI (Uses Lovable's built-in AI connector — Connectors → AI — default model Gemini, no API keys needed)
 
 - Autocorrect/autocomplete as you type, in both Notes and Pages.
 
@@ -127,22 +127,3 @@ Build in plan mode first — lay out the data model (users, notes, pages, shared
 This project was built with [Lovable](https://lovable.dev).
 
 **Live app**: https://scrapnotes.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/91d0bb9f-1011-4598-bf9a-94f01f5ebd53).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
